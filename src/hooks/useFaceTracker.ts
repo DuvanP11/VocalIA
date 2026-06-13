@@ -164,7 +164,7 @@ export function useFaceTracker({
         'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js',
       );
 
-      const win = window as Window & {
+      const win = window as unknown as Window & {
         FaceMesh: new (c: unknown) => FaceMeshInstance;
       };
 
