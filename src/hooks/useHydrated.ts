@@ -19,8 +19,7 @@ export function useHydrated(): boolean {
     }
     // Esperar hasta que el store hidrate o timeout de 300ms
     const unsub = useAppStore.subscribe(
-      s => s._hasHydrated,
-      (hydrated) => { if (hydrated) setLocalHydrated(true); },
+      (state) => { if (state._hasHydrated) setLocalHydrated(true); },
     );
     const fallback = setTimeout(() => setLocalHydrated(true), 400);
     return () => { unsub(); clearTimeout(fallback); };
