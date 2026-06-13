@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAudioVisualizer } from '@/hooks/useAudioVisualizer';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +22,9 @@ export function AudioVisualizer({
   className,
 }: AudioVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => { setMounted(true); }, []);
   useAudioVisualizer(canvasRef, analyserNode, isActive, { color, type });
 
   // Ajustar tamaño del canvas al contenedor
@@ -48,7 +50,7 @@ export function AudioVisualizer({
         width={600}
         height={height}
       />
-      {!isActive && (
+      {!isActive && mounted && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex gap-1 items-end h-8">
             {[20, 30, 14, 32, 18, 28, 12, 35, 22, 16, 30, 24].map((h, i) => (

@@ -182,6 +182,26 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* ─── IA COACH ─── */}
+        <Link href="/coach">
+          <div className="rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-indigo-600/15 to-violet-600/10 p-4 hover:from-indigo-600/20 hover:to-violet-600/15 transition-all active:scale-[0.99]">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">IA Coach</span>
+                  <span className="text-[9px] text-white/30 bg-indigo-500/10 px-1.5 py-0.5 rounded-full border border-indigo-500/20">Nuevo</span>
+                </div>
+                <h3 className="font-bold text-white text-sm">Plan personalizado esta semana</h3>
+                <p className="text-[11px] text-white/40 mt-0.5">Ejercicios basados en tus debilidades detectadas</p>
+              </div>
+              <span className="text-white/30 text-xl flex-shrink-0">→</span>
+            </div>
+          </div>
+        </Link>
+
         {/* ─── VOZ ─── */}
         {assessment ? (
           <div>

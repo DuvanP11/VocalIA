@@ -29,9 +29,11 @@ interface AppState {
 
   // Acciones — Perfil
   setupProfile: (data: Omit<UserProfile, 'id' | 'createdAt'>) => void;
+  setProfile: (profile: UserProfile) => void;
   completeOnboarding: () => void;
 
   // Acciones — Progreso
+  setProgress: (progress: UserProgress) => void;
   initProgress: () => void;
   markExerciseDone: (exerciseId: string) => void;
   markLessonDone: (lessonId: string, score: number) => void;
@@ -65,6 +67,10 @@ export const useAppStore = create<AppState>()(
         };
         set({ profile });
       },
+
+      setProfile: (profile) => set({ profile, isOnboarded: true }),
+
+      setProgress: (progress) => set({ progress }),
 
       completeOnboarding: () => {
         set({ isOnboarded: true });

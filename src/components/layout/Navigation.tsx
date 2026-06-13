@@ -8,9 +8,9 @@ import { useAppStore } from '@/store/appStore';
 const NAV_ITEMS = [
   { href: '/dashboard', icon: '⚡', label: 'Inicio' },
   { href: '/training', icon: '🎓', label: 'Entrenar' },
+  { href: '/songs',    icon: '🎵', label: 'Canciones' },
   { href: '/practice', icon: '🎤', label: 'Practicar' },
   { href: '/progress', icon: '📈', label: 'Progreso' },
-  { href: '/profile', icon: '👤', label: 'Perfil' },
 ] as const;
 
 export function BottomNav() {
