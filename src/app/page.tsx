@@ -1,65 +1,94 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAppStore } from '@/store/appStore';
 
 export default function Home() {
+  const router = useRouter();
+  const isOnboarded = useAppStore(s => s.isOnboarded);
+
+  useEffect(() => {
+    if (isOnboarded) router.replace('/dashboard');
+  }, [isOnboarded, router]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="min-h-dvh flex flex-col items-center justify-between bg-[#080a12] overflow-hidden">
+      {/* Background gradient */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-20"
+          style={{ background: 'radial-gradient(ellipse, #7c6aff 0%, transparent 70%)' }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+        <div
+          className="absolute bottom-0 right-0 w-[400px] h-[300px] rounded-full opacity-10"
+          style={{ background: 'radial-gradient(ellipse, #38bdf8 0%, transparent 70%)' }}
+        />
+      </div>
+
+      {/* Hero */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12 relative z-10">
+        {/* Logo */}
+        <div className="text-7xl mb-6 float">🎤</div>
+
+        <div className="mb-2">
+          <span className="text-xs font-bold tracking-[3px] text-violet-400 uppercase">Bienvenido a</span>
+        </div>
+
+        <h1 className="text-6xl font-black tracking-tight glow-text mb-3">
+          <span className="bg-gradient-to-r from-violet-300 via-purple-200 to-sky-300 bg-clip-text text-transparent">
+            VocalIA
+          </span>
+        </h1>
+
+        <p className="text-lg text-white/60 max-w-xs leading-relaxed mb-8">
+          Tu profesor de canto personal con inteligencia artificial — disponible las 24 horas.
+        </p>
+
+        {/* Features */}
+        <div className="grid grid-cols-2 gap-3 mb-10 w-full max-w-sm">
+          {[
+            { icon: '🎯', text: 'Afinación en tiempo real' },
+            { icon: '🧠', text: 'IA adaptativa' },
+            { icon: '😊', text: 'Análisis facial' },
+            { icon: '📈', text: 'Seguimiento de progreso' },
+          ].map(f => (
+            <div key={f.text} className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-3 flex items-center gap-2.5">
+              <span className="text-xl">{f.icon}</span>
+              <span className="text-xs text-white/60 font-medium leading-tight">{f.text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Link
+            href="/onboarding"
+            className="w-full py-4 rounded-2xl bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-bold text-lg text-center transition-all duration-200 shadow-lg shadow-violet-900/40"
+          >
+            Comenzar Gratis 🚀
+          </Link>
+          <p className="text-xs text-white/30 text-center">
+            Sin tarjeta de crédito · Sin registro obligatorio
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Bottom stats */}
+      <div className="w-full border-t border-white/[0.05] px-6 py-5 flex justify-around relative z-10">
+        {[
+          { value: '5', unit: 'Niveles', icon: '🎓' },
+          { value: '40+', unit: 'Lecciones', icon: '📚' },
+          { value: '100%', unit: 'Gratis MVP', icon: '💜' },
+        ].map(s => (
+          <div key={s.unit} className="text-center">
+            <div className="text-lg">{s.icon}</div>
+            <div className="text-xl font-black text-white">{s.value}</div>
+            <div className="text-[10px] text-white/30">{s.unit}</div>
+          </div>
+        ))}
+      </div>
+    </main>
   );
 }
