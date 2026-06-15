@@ -8,6 +8,7 @@ import { useHydrated } from '@/hooks/useHydrated';
 import { BottomNav, TopBar } from '@/components/layout/Navigation';
 import { Card, Badge } from '@/components/ui';
 import { VOICE_TYPE_INFO } from '@/lib/audio/noteUtils';
+import { Icon } from '@/components/ui/Icon';
 import { formatMinutes } from '@/lib/utils';
 
 const GOAL_LABELS: Record<string, { label: string; icon: string }> = {
@@ -90,7 +91,7 @@ export default function ProfilePage() {
               <h3 className="text-sm font-bold text-white/60">Meta diaria</h3>
               <p className="text-2xl font-black text-white mt-1">{profile.dailyGoalMinutes} minutos</p>
             </div>
-            <span className="text-3xl">⏱️</span>
+            <Icon name="stopwatch" size={30} />
           </div>
         </Card>
 
@@ -99,7 +100,7 @@ export default function ProfilePage() {
           <Card className="p-4">
             <h3 className="text-sm font-bold text-white/60 mb-3">Mi voz</h3>
             <div className="flex items-center gap-4">
-              <div className="text-4xl">🎤</div>
+              <Icon name="microphone" size={36} />
               <div>
                 <p className="text-xl font-black" style={{ color: vInfo.color }}>
                   {vInfo.label}
@@ -115,7 +116,7 @@ export default function ProfilePage() {
           <Link href="/assessment">
             <Card className="p-4 border-dashed border-white/10">
               <div className="flex items-center gap-3 text-white/40">
-                <span className="text-2xl">🔬</span>
+                <Icon name="microscope" size={22} />
                 <p className="text-sm">Realiza el diagnóstico vocal →</p>
               </div>
             </Card>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/appStore';
 import { Button } from '@/components/ui';
 import type { VocalGoal, ExperienceLevel } from '@/types';
+import { Icon } from '@/components/ui/Icon';
 
 const GOALS: { id: VocalGoal; label: string; icon: string; desc: string }[] = [
   { id: 'sing-in-tune',     label: 'Cantar afinado',      icon: '🎯', desc: 'Mejorar la precisión de notas' },
@@ -65,7 +66,7 @@ export default function OnboardingPage() {
     // Paso 0: Nombre
     <div key="name" className="space-y-6">
       <div className="text-center">
-        <div className="text-5xl mb-4">👋</div>
+        <div className="flex justify-center mb-4"><Icon name="wave" size={44} /></div>
         <h2 className="text-2xl font-bold text-white">¿Cómo te llamas?</h2>
         <p className="text-white/50 mt-2 text-sm">Tu profesor IA te llamará por tu nombre</p>
       </div>
@@ -84,7 +85,7 @@ export default function OnboardingPage() {
     // Paso 1: Objetivos
     <div key="goals" className="space-y-4">
       <div className="text-center">
-        <div className="text-5xl mb-4">🎯</div>
+        <div className="flex justify-center mb-4"><Icon name="target" size={44} /></div>
         <h2 className="text-2xl font-bold text-white">¿Cuál es tu objetivo?</h2>
         <p className="text-white/50 mt-2 text-sm">Puedes elegir varios</p>
       </div>
@@ -116,7 +117,7 @@ export default function OnboardingPage() {
     // Paso 2: Experiencia
     <div key="experience" className="space-y-4">
       <div className="text-center">
-        <div className="text-5xl mb-4">🌱</div>
+        <div className="flex justify-center mb-4"><Icon name="seedling" size={44} /></div>
         <h2 className="text-2xl font-bold text-white">¿Cuál es tu nivel?</h2>
         <p className="text-white/50 mt-2 text-sm">Esto personaliza tu plan de estudio</p>
       </div>
@@ -145,7 +146,7 @@ export default function OnboardingPage() {
     // Paso 3: Meta diaria
     <div key="daily" className="space-y-6">
       <div className="text-center">
-        <div className="text-5xl mb-4">⏱️</div>
+        <div className="flex justify-center mb-4"><Icon name="stopwatch" size={44} /></div>
         <h2 className="text-2xl font-bold text-white">¿Cuánto tiempo al día?</h2>
         <p className="text-white/50 mt-2 text-sm">
           {dailyMinutes} min diarios = grandes resultados en semanas
@@ -167,8 +168,8 @@ export default function OnboardingPage() {
         ))}
       </div>
       <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
-        <p className="text-sm text-emerald-400 text-center">
-          🔥 Con {dailyMinutes} minutos al día estarás cantando con confianza en <strong>{dailyMinutes <= 10 ? '8' : dailyMinutes <= 20 ? '4' : '3'} semanas</strong>
+        <p className="text-sm text-emerald-400 text-center flex items-center justify-center gap-1 flex-wrap">
+          <Icon name="fire" size={14} glow={false} /> Con {dailyMinutes} minutos al día estarás cantando con confianza en <strong>{dailyMinutes <= 10 ? '8' : dailyMinutes <= 20 ? '4' : '3'} semanas</strong>
         </p>
       </div>
     </div>,
@@ -225,7 +226,7 @@ export default function OnboardingPage() {
             onClick={handleFinish}
             className="flex-1"
           >
-            ¡Empezar! 🎤
+            <span className="flex items-center gap-2">¡Empezar! <Icon name="microphone" size={16} glow={false} /></span>
           </Button>
         )}
       </div>

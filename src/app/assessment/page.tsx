@@ -6,6 +6,8 @@ import { usePitchDetector } from '@/hooks/usePitchDetector';
 import { TunerDisplay } from '@/components/audio/TunerDisplay';
 import { AudioVisualizer } from '@/components/audio/AudioVisualizer';
 import { Button, ProgressBar, Card } from '@/components/ui';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 import { useAppStore } from '@/store/appStore';
 import {
   classifyVoiceType,
@@ -164,14 +166,14 @@ export default function AssessmentPage() {
             <div className="bg-violet-600/10 border border-violet-500/20 rounded-2xl p-5">
               <h3 className="font-bold text-violet-300 mb-3">¿Qué vas a hacer?</h3>
               <ul className="space-y-2.5">
-                {[
-                  { icon: '🎤', text: 'Hablarás al micrófono durante 30 segundos' },
-                  { icon: '🎵', text: 'Cantarás cualquier nota — grave, media y aguda' },
-                  { icon: '🧠', text: 'La IA analizará tu rango y tipo de voz' },
-                  { icon: '📊', text: 'Recibirás un informe personalizado' },
-                ].map(item => (
-                  <li key={item.text} className="flex gap-3 text-sm text-white/70">
-                    <span>{item.icon}</span>
+                {([
+                  { iconName: 'microphone' as IconName, text: 'Hablarás al micrófono durante 30 segundos' },
+                  { iconName: 'music-note' as IconName, text: 'Cantarás cualquier nota — grave, media y aguda' },
+                  { iconName: 'brain' as IconName,      text: 'La IA analizará tu rango y tipo de voz' },
+                  { iconName: 'chart-up' as IconName,   text: 'Recibirás un informe personalizado' },
+                ] as const).map(item => (
+                  <li key={item.text} className="flex gap-3 text-sm text-white/70 items-center">
+                    <Icon name={item.iconName} size={18} />
                     <span>{item.text}</span>
                   </li>
                 ))}
@@ -179,14 +181,14 @@ export default function AssessmentPage() {
             </div>
 
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-              <p className="text-sm text-amber-300">
-                💡 <strong>Tip:</strong> Busca un lugar silencioso y mantén el micrófono a ~20cm de tu boca.
+              <p className="text-sm text-amber-300 flex items-center gap-1.5">
+                <Icon name="bulb" size={16} glow={false} /> <strong>Tip:</strong> Busca un lugar silencioso y mantén el micrófono a ~20cm de tu boca.
               </p>
             </div>
 
             {error && (
               <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4">
-                <p className="text-sm text-rose-400">⚠️ {error}</p>
+                <p className="text-sm text-rose-400 flex items-center gap-1.5"><Icon name="warning" size={16} glow={false} /> {error}</p>
               </div>
             )}
 
@@ -196,7 +198,7 @@ export default function AssessmentPage() {
               onClick={handleStartRecording}
               className="w-full"
             >
-              🎤 Comenzar Diagnóstico
+              <span className="flex items-center gap-2"><Icon name="microphone" size={18} glow={false} /> Comenzar Diagnóstico</span>
             </Button>
 
             <button
@@ -246,8 +248,11 @@ export default function AssessmentPage() {
 
             {/* Instrucciones */}
             <div className="grid grid-cols-3 gap-2 text-center">
-              {['🎵 Nota grave', '🎵 Nota media', '🎵 Nota aguda'].map(t => (
-                <div key={t} className="bg-white/[0.04] rounded-xl p-2.5 text-xs text-white/50">{t}</div>
+              {(['Nota grave', 'Nota media', 'Nota aguda'] as const).map(t => (
+                <div key={t} className="bg-white/[0.04] rounded-xl p-2.5 text-xs text-white/50 flex flex-col items-center gap-1">
+                  <Icon name="music-note" size={14} glow={false} />
+                  {t}
+                </div>
               ))}
             </div>
 
@@ -278,7 +283,7 @@ export default function AssessmentPage() {
           <div className="space-y-4 pt-2">
             {/* Tipo de voz */}
             <Card className="p-5 text-center">
-              <div className="text-5xl mb-3">🎤</div>
+              <div className="flex justify-center mb-3"><Icon name="microphone" size={44} /></div>
               <p className="text-xs text-white/40 uppercase tracking-widest mb-1">Tu tipo de voz</p>
               <h2 className="text-3xl font-black" style={{ color: vInfo.color }}>
                 {vInfo.label}
@@ -293,7 +298,7 @@ export default function AssessmentPage() {
             {/* Fortalezas */}
             {result.strengths.length > 0 && (
               <Card className="p-4">
-                <h3 className="text-sm font-bold text-emerald-400 mb-3">💪 Fortalezas</h3>
+                <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-1.5"><Icon name="muscle" size={14} glow={false} /> Fortalezas</h3>
                 <ul className="space-y-2">
                   {result.strengths.map(s => (
                     <li key={s} className="text-sm text-white/70 flex gap-2">
@@ -308,7 +313,7 @@ export default function AssessmentPage() {
             {/* Debilidades */}
             {result.weaknesses.length > 0 && (
               <Card className="p-4">
-                <h3 className="text-sm font-bold text-amber-400 mb-3">🎯 Áreas a mejorar</h3>
+                <h3 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-1.5"><Icon name="target" size={14} glow={false} /> Áreas a mejorar</h3>
                 <ul className="space-y-2">
                   {result.weaknesses.map(w => (
                     <li key={w} className="text-sm text-white/70 flex gap-2">
@@ -322,7 +327,7 @@ export default function AssessmentPage() {
 
             {/* Recomendaciones */}
             <Card className="p-4">
-              <h3 className="text-sm font-bold text-sky-400 mb-3">🗺️ Plan recomendado</h3>
+              <h3 className="text-sm font-bold text-sky-400 mb-3 flex items-center gap-1.5"><Icon name="satellite" size={14} glow={false} /> Plan recomendado</h3>
               <ul className="space-y-2">
                 {result.recommendations.map(r => (
                   <li key={r} className="text-sm text-white/70 flex gap-2">
@@ -363,7 +368,7 @@ export default function AssessmentPage() {
               onClick={() => router.push('/dashboard')}
               className="w-full mt-4"
             >
-              🚀 Ir al Dashboard
+              <span className="flex items-center gap-2"><Icon name="rocket" size={18} glow={false} /> Ir al Dashboard</span>
             </Button>
           </div>
         )}

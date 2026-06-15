@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useAppStore } from '@/store/appStore';
 import { useHydrated } from '@/hooks/useHydrated';
 import { TopBar, BottomNav } from '@/components/layout/Navigation';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 import {
   analyzeWeaknesses,
   type WeaknessAnalysis,
@@ -24,21 +26,21 @@ const SEVERITY_STYLE: Record<WeaknessArea['severity'], { dot: string; badge: str
   low:    { dot: 'bg-sky-500',    badge: 'text-sky-400 bg-sky-500/10',     label: 'Baja' },
 };
 
-const CATEGORY_ICON: Record<WeaknessArea['category'], string> = {
-  pitch:           '🎵',
-  rhythm:          '🥁',
-  breathing:       '🫁',
-  range:           '📡',
-  consistency:     '📅',
-  'lesson-progress': '📚',
+const CATEGORY_ICON: Record<WeaknessArea['category'], IconName> = {
+  pitch:             'music-note',
+  rhythm:            'drum',
+  breathing:         'lungs',
+  range:             'satellite',
+  consistency:       'stopwatch',
+  'lesson-progress': 'books',
 };
 
-const TYPE_ICON: Record<CoachingExercise['type'], string> = {
-  breathing: '🫁',
-  pitch:     '🎵',
-  rhythm:    '🥁',
-  range:     '📡',
-  'warm-up': '☀️',
+const TYPE_ICON: Record<CoachingExercise['type'], IconName> = {
+  breathing: 'lungs',
+  pitch:     'music-note',
+  rhythm:    'drum',
+  range:     'satellite',
+  'warm-up': 'fire',
 };
 
 const TYPE_COLOR: Record<CoachingExercise['type'], string> = {
@@ -117,8 +119,8 @@ function ExerciseCard({ ex }: { ex: CoachingExercise }) {
         onClick={() => setExpanded(v => !v)}
         className="w-full p-4 text-left flex items-start gap-3"
       >
-        <div className="w-10 h-10 rounded-xl bg-white/[0.06] flex items-center justify-center flex-shrink-0 text-lg">
-          {TYPE_ICON[ex.type]}
+        <div className="w-10 h-10 rounded-xl bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+          <Icon name={TYPE_ICON[ex.type]} size={20} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -175,7 +177,7 @@ function ExerciseCard({ ex }: { ex: CoachingExercise }) {
             href="/practice"
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-400 text-xs font-semibold hover:bg-violet-600/30 transition-all active:scale-[0.98]"
           >
-            🎤 Practicar ahora
+            <Icon name="microphone" size={14} /> Practicar ahora
           </Link>
         </div>
       )}
@@ -272,7 +274,7 @@ export default function CoachPage() {
         <div className="relative">
           <div className="w-20 h-20 border-2 border-violet-500/20 rounded-full" />
           <div className="absolute inset-0 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center text-3xl">🤖</div>
+          <div className="absolute inset-0 flex items-center justify-center"><Icon name="robot" size={30} /></div>
         </div>
         <div className="text-center space-y-2">
           <p className="font-semibold text-white">
@@ -291,7 +293,7 @@ export default function CoachPage() {
   if (phase === 'error') {
     return (
       <div className="min-h-dvh bg-[#080a12] flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <span className="text-5xl">⚠️</span>
+        <Icon name="warning" size={48} />
         <div>
           <p className="font-semibold text-white mb-1">No se pudo generar el plan</p>
           <p className="text-xs text-white/40">{errMsg}</p>
@@ -362,8 +364,8 @@ export default function CoachPage() {
                     <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1 ${style.dot}`} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-semibold text-white/80">
-                          {CATEGORY_ICON[w.category]} {w.title}
+                        <span className="text-xs font-semibold text-white/80 inline-flex items-center gap-1">
+                          <Icon name={CATEGORY_ICON[w.category]} size={13} /> {w.title}
                         </span>
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${style.badge}`}>
                           {style.label}
@@ -393,7 +395,7 @@ export default function CoachPage() {
         {/* ── Plan IA ───────────────────────────────────────── */}
         <section className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-600/10 to-violet-600/5 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">🤖</span>
+            <Icon name="robot" size={18} />
             <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Plan IA</span>
           </div>
           <p className="text-xs text-white/60 leading-relaxed mb-4">{plan.intro}</p>
@@ -429,12 +431,12 @@ export default function CoachPage() {
           <h3 className="text-sm font-bold text-white mb-4">Rutina diaria</h3>
           <div className="space-y-4">
             {([
-              { icon: '🌅', label: 'Mañana', items: plan.dailyRoutine.morning },
-              { icon: '🌙', label: 'Noche',  items: plan.dailyRoutine.evening },
+              { iconName: 'fire' as IconName, label: 'Mañana', items: plan.dailyRoutine.morning },
+              { iconName: 'star' as IconName, label: 'Noche',  items: plan.dailyRoutine.evening },
             ] as const).map(slot => (
               <div key={slot.label}>
-                <p className="text-xs font-semibold text-white/60 mb-2">
-                  {slot.icon} {slot.label}
+                <p className="text-xs font-semibold text-white/60 mb-2 flex items-center gap-1">
+                  <Icon name={slot.iconName} size={13} /> {slot.label}
                 </p>
                 <ul className="space-y-1.5">
                   {slot.items.map((item, i) => (
@@ -463,14 +465,14 @@ export default function CoachPage() {
             href="/practice"
             className="flex flex-col items-center gap-1 py-3 rounded-2xl bg-violet-600/15 border border-violet-500/20 hover:bg-violet-600/20 transition-all"
           >
-            <span className="text-xl">🎤</span>
+            <Icon name="microphone" size={22} />
             <span className="text-xs font-semibold text-violet-400">Practicar libre</span>
           </Link>
           <Link
             href="/training"
             className="flex flex-col items-center gap-1 py-3 rounded-2xl bg-sky-600/10 border border-sky-500/20 hover:bg-sky-600/15 transition-all"
           >
-            <span className="text-xl">🎓</span>
+            <Icon name="graduation" size={22} />
             <span className="text-xs font-semibold text-sky-400">Ir a lecciones</span>
           </Link>
         </div>

@@ -10,6 +10,8 @@ import { usePitchDetector } from '@/hooks/usePitchDetector';
 import { formatDuration, isNoteInKey, getKeyNotes } from '@/lib/audio/songAnalyzer';
 import { centsToColor } from '@/lib/audio/noteUtils';
 import type { SongPerformance } from '@/types';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 
 // ─── Estados del modo práctica ───────────────────────────────
 type PracticeState = 'idle' | 'countdown' | 'singing' | 'results';
@@ -187,15 +189,15 @@ export default function SongPracticePage() {
         {/* ── Metadata ────────────────────────────────────────── */}
         {song.analysis && (
           <div className="flex flex-wrap gap-2">
-            {[
-              { label: `🔑 ${song.analysis.key}` },
-              { label: `♩ ${song.analysis.tempo} BPM` },
-              { label: `⏱ ${formatDuration(song.duration)}` },
-            ].map(({ label }) => (
-              <span key={label} className="text-xs text-white/50 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.06]">
-                {label}
-              </span>
-            ))}
+            <span className="text-xs text-white/50 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.06] inline-flex items-center gap-1">
+              <Icon name="key" size={11} /> {song.analysis.key}
+            </span>
+            <span className="text-xs text-white/50 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.06]">
+              ♩ {song.analysis.tempo} BPM
+            </span>
+            <span className="text-xs text-white/50 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.06] inline-flex items-center gap-1">
+              <Icon name="stopwatch" size={11} /> {formatDuration(song.duration)}
+            </span>
           </div>
         )}
 
@@ -308,8 +310,8 @@ export default function SongPracticePage() {
                   )}
                 </div>
               ) : (
-                <div className="text-center text-white/30 text-sm py-2">
-                  🎤 Canta algo…
+                <div className="text-center text-white/30 text-sm py-2 flex items-center justify-center gap-1.5">
+                  <Icon name="microphone" size={16} glow={false} /> Canta algo…
                 </div>
               )}
 
@@ -368,8 +370,8 @@ export default function SongPracticePage() {
           return (
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 space-y-4">
               <div className="text-center">
-                <div className="text-5xl mb-2">
-                  {overall >= 80 ? '⭐' : overall >= 60 ? '🎤' : '💪'}
+                <div className="flex justify-center mb-2">
+                  {overall >= 80 ? <Icon name="star" size={44} /> : overall >= 60 ? <Icon name="microphone" size={44} /> : <Icon name="muscle" size={44} />}
                 </div>
                 <h2 className="text-xl font-bold text-white">
                   {overall >= 80 ? '¡Excelente!' : overall >= 60 ? '¡Bien hecho!' : '¡Sigue practicando!'}
@@ -378,14 +380,14 @@ export default function SongPracticePage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Tiempo cantando', value: `${singingPct}%`, icon: '🎤' },
-                  { label: 'En tonalidad',    value: `${inKeyPct}%`,   icon: '🎯' },
-                  { label: 'Afinación media', value: `±${avgCents}¢`,  icon: '🎵' },
-                  { label: 'Prácticas',       value: `${(song.performances.length)}`, icon: '📊' },
-                ].map(({ label, value, icon }) => (
+                {([
+                  { label: 'Tiempo cantando', value: `${singingPct}%`, iconName: 'microphone' as IconName },
+                  { label: 'En tonalidad',    value: `${inKeyPct}%`,   iconName: 'target' as IconName },
+                  { label: 'Afinación media', value: `±${avgCents}¢`,  iconName: 'music-note' as IconName },
+                  { label: 'Prácticas',       value: `${(song.performances.length)}`, iconName: 'chart-up' as IconName },
+                ] as const).map(({ label, value, iconName }) => (
                   <div key={label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                    <div className="text-lg mb-0.5">{icon}</div>
+                    <div className="flex justify-center mb-0.5"><Icon name={iconName} size={18} /></div>
                     <div className="text-base font-bold text-white">{value}</div>
                     <div className="text-[10px] text-white/40">{label}</div>
                   </div>
@@ -398,9 +400,9 @@ export default function SongPracticePage() {
                     player.seek(0);
                     setPracticeState('countdown');
                   }}
-                  className="flex-1 py-3 rounded-xl bg-violet-500/20 text-violet-300 font-semibold text-sm hover:bg-violet-500/30 transition-all"
+                  className="flex-1 py-3 rounded-xl bg-violet-500/20 text-violet-300 font-semibold text-sm hover:bg-violet-500/30 transition-all flex items-center justify-center gap-1.5"
                 >
-                  🔄 Repetir
+                  <Icon name="target" size={16} glow={false} /> Repetir
                 </button>
                 <button
                   onClick={() => {
@@ -454,15 +456,15 @@ export default function SongPracticePage() {
                 setPracticeState('countdown');
               }}
               disabled={!player.isLoaded || pitch.permissionDenied}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold text-base hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-40"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold text-base hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
             >
               {!player.isLoaded && !player.error
-                ? '⏳ Cargando canción…'
-                : '🎤 Cantar con esta canción'}
+                ? <><Icon name="hourglass" size={18} glow={false} /> Cargando canción…</>
+                : <><Icon name="microphone" size={18} glow={false} /> Cantar con esta canción</>}
             </button>
             {pitch.permissionDenied && (
-              <p className="text-xs text-rose-400 text-center">
-                ⚠️ Activa el micrófono en tu navegador para cantar
+              <p className="text-xs text-rose-400 text-center flex items-center justify-center gap-1">
+                <Icon name="warning" size={14} glow={false} /> Activa el micrófono en tu navegador para cantar
               </p>
             )}
           </div>

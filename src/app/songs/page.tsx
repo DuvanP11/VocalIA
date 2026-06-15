@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { TopBar, BottomNav } from '@/components/layout/Navigation';
 import { songStorage, type StoredSong } from '@/lib/songStorage';
 import { analyzeSong, formatDuration } from '@/lib/audio/songAnalyzer';
+import { Icon } from '@/components/ui/Icon';
 
 const ACCEPTED = ['audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/wav', 'audio/aac', 'audio/flac', 'audio/x-m4a'];
 const DIFFICULTY_LABEL: Record<string, string> = {
@@ -118,12 +119,12 @@ export default function SongsPage() {
           />
           {uploading ? (
             <div className="space-y-2">
-              <div className="text-3xl animate-pulse">⏳</div>
+              <div className="flex justify-center animate-pulse"><Icon name="hourglass" size={28} /></div>
               <p className="text-sm text-white/50">Guardando…</p>
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="text-4xl">🎵</div>
+              <div className="flex justify-center"><Icon name="music-note" size={36} /></div>
               <p className="text-sm font-medium text-white/70">Arrastra un archivo aquí</p>
               <p className="text-xs text-white/30">MP3 · OGG · WAV · AAC · FLAC</p>
             </div>
@@ -133,7 +134,7 @@ export default function SongsPage() {
         {/* ── Lista de canciones ────────────────────────────── */}
         {songs.length === 0 && !uploading && (
           <div className="text-center py-12 space-y-2">
-            <p className="text-4xl opacity-30">🎤</p>
+            <div className="flex justify-center opacity-30"><Icon name="microphone" size={36} /></div>
             <p className="text-sm text-white/30">Sin canciones todavía</p>
             <p className="text-xs text-white/20">Sube un MP3 para empezar</p>
           </div>
@@ -150,7 +151,7 @@ export default function SongsPage() {
                 <div className="flex items-start gap-3">
                   {/* Icono */}
                   <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xl">🎵</span>
+                    <Icon name="music-note" size={20} />
                   </div>
 
                   {/* Info */}
@@ -169,11 +170,11 @@ export default function SongsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       {song.analysis ? (
                         <>
-                          <span className="text-[11px] text-white/50">🔑 {song.analysis.key}</span>
+                          <span className="text-[11px] text-white/50 inline-flex items-center gap-0.5"><Icon name="key" size={11} /> {song.analysis.key}</span>
                           <span className="text-white/20">·</span>
                           <span className="text-[11px] text-white/50">♩ {song.analysis.tempo} BPM</span>
                           <span className="text-white/20">·</span>
-                          <span className="text-[11px] text-white/50">⏱ {formatDuration(song.duration)}</span>
+                          <span className="text-[11px] text-white/50 inline-flex items-center gap-0.5"><Icon name="stopwatch" size={11} /> {formatDuration(song.duration)}</span>
                           <span
                             className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${DIFFICULTY_COLOR[song.analysis.difficulty]}`}
                           >
@@ -181,7 +182,7 @@ export default function SongsPage() {
                           </span>
                         </>
                       ) : song.duration > 0 ? (
-                        <span className="text-[11px] text-white/50">⏱ {formatDuration(song.duration)}</span>
+                        <span className="text-[11px] text-white/50 inline-flex items-center gap-0.5"><Icon name="stopwatch" size={11} /> {formatDuration(song.duration)}</span>
                       ) : (
                         <span className="text-[11px] text-white/30 italic">Sin analizar</span>
                       )}

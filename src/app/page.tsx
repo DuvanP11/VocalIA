@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppStore } from '@/store/appStore';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 
 export default function Home() {
   const router = useRouter();
@@ -30,7 +32,7 @@ export default function Home() {
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12 relative z-10">
         {/* Logo */}
-        <div className="text-7xl mb-6 float">🎤</div>
+        <div className="mb-6 float flex justify-center"><Icon name="microphone" size={64} /></div>
 
         <div className="mb-2">
           <span className="text-xs font-bold tracking-[3px] text-violet-400 uppercase">Bienvenido a</span>
@@ -48,14 +50,14 @@ export default function Home() {
 
         {/* Features */}
         <div className="grid grid-cols-2 gap-3 mb-10 w-full max-w-sm">
-          {[
-            { icon: '🎯', text: 'Afinación en tiempo real' },
-            { icon: '🧠', text: 'IA adaptativa' },
-            { icon: '😊', text: 'Análisis facial' },
-            { icon: '📈', text: 'Seguimiento de progreso' },
-          ].map(f => (
+          {([
+            { iconName: 'target' as IconName,     text: 'Afinación en tiempo real' },
+            { iconName: 'brain' as IconName,      text: 'IA adaptativa' },
+            { iconName: 'heart' as IconName,      text: 'Análisis facial' },
+            { iconName: 'chart-up' as IconName,   text: 'Seguimiento de progreso' },
+          ] as const).map(f => (
             <div key={f.text} className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-3 flex items-center gap-2.5">
-              <span className="text-xl">{f.icon}</span>
+              <Icon name={f.iconName} size={20} />
               <span className="text-xs text-white/60 font-medium leading-tight">{f.text}</span>
             </div>
           ))}
@@ -84,7 +86,7 @@ export default function Home() {
             href="/onboarding"
             className="w-full py-3.5 rounded-2xl border border-white/10 hover:border-violet-500/40 hover:bg-white/[0.03] text-white font-semibold text-base text-center transition-all duration-200"
           >
-            Comenzar sin cuenta 🚀
+            <span className="flex items-center justify-center gap-2">Comenzar sin cuenta <Icon name="rocket" size={18} glow={false} /></span>
           </Link>
           <p className="text-[10px] text-white/20 text-center">
             Sin tarjeta de crédito · 100% gratis
@@ -95,12 +97,12 @@ export default function Home() {
       {/* Bottom stats */}
       <div className="w-full border-t border-white/[0.05] px-6 py-5 flex justify-around relative z-10">
         {[
-          { value: '5', unit: 'Niveles', icon: '🎓' },
-          { value: '40+', unit: 'Lecciones', icon: '📚' },
-          { value: '100%', unit: 'Gratis MVP', icon: '💜' },
-        ].map(s => (
+          { value: '5', unit: 'Niveles', iconName: 'graduation' as IconName },
+          { value: '40+', unit: 'Lecciones', iconName: 'books' as IconName },
+          { value: '100%', unit: 'Gratis MVP', iconName: 'heart' as IconName },
+        ] as const).map(s => (
           <div key={s.unit} className="text-center">
-            <div className="text-lg">{s.icon}</div>
+            <div className="flex justify-center"><Icon name={s.iconName} size={20} /></div>
             <div className="text-xl font-black text-white">{s.value}</div>
             <div className="text-[10px] text-white/30">{s.unit}</div>
           </div>

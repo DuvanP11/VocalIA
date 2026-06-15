@@ -13,15 +13,17 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   ResponsiveContainer, Cell, Tooltip,
 } from 'recharts';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 
-const ACHIEVEMENTS_CATALOG = [
-  { id: 'first-breath',    icon: '💨', title: 'Primera respiración',  desc: 'Completaste el ejercicio de respiración',   color: '#38bdf8' },
-  { id: 'first-note',      icon: '🎵', title: 'Primera nota',          desc: 'Cantaste tu primera nota con el mic',       color: '#7c6aff' },
-  { id: 'level-1-complete', icon: '🎓', title: 'Nivel 1 completado',   desc: 'Dominaste los fundamentos',                 color: '#34d399' },
-  { id: 'streak-7',        icon: '🔥', title: 'Semana de fuego',        desc: '7 días seguidos de práctica',               color: '#f59e0b' },
-  { id: 'streak-30',       icon: '💎', title: 'Mes de diamante',        desc: '30 días seguidos de práctica',              color: '#818cf8' },
-  { id: 'first-hour',      icon: '⏱️', title: 'Primera hora',           desc: 'Acumulaste 1 hora de práctica total',      color: '#f43f5e' },
-  { id: 'diagnosed',       icon: '🔬', title: 'Diagnóstico vocal',      desc: 'Completaste el análisis inicial de tu voz', color: '#fb923c' },
+const ACHIEVEMENTS_CATALOG: { id: string; iconName: IconName; title: string; desc: string; color: string }[] = [
+  { id: 'first-breath',     iconName: 'wave',       title: 'Primera respiración',  desc: 'Completaste el ejercicio de respiración',   color: '#38bdf8' },
+  { id: 'first-note',       iconName: 'music-note', title: 'Primera nota',          desc: 'Cantaste tu primera nota con el mic',       color: '#7c6aff' },
+  { id: 'level-1-complete', iconName: 'graduation', title: 'Nivel 1 completado',   desc: 'Dominaste los fundamentos',                 color: '#34d399' },
+  { id: 'streak-7',         iconName: 'fire',       title: 'Semana de fuego',       desc: '7 días seguidos de práctica',               color: '#f59e0b' },
+  { id: 'streak-30',        iconName: 'diamond',    title: 'Mes de diamante',       desc: '30 días seguidos de práctica',              color: '#818cf8' },
+  { id: 'first-hour',       iconName: 'stopwatch',  title: 'Primera hora',          desc: 'Acumulaste 1 hora de práctica total',      color: '#f43f5e' },
+  { id: 'diagnosed',        iconName: 'microscope', title: 'Diagnóstico vocal',     desc: 'Completaste el análisis inicial de tu voz', color: '#fb923c' },
 ];
 
 export default function ProgressPage() {
@@ -70,11 +72,15 @@ export default function ProgressPage() {
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-4 text-center">
             <div className="text-4xl font-black text-violet-400">{progress.currentStreak}</div>
-            <div className="text-xs text-white/40 mt-1">días seguidos 🔥</div>
+            <div className="text-xs text-white/40 mt-1 flex items-center justify-center gap-0.5">
+              días seguidos <Icon name="fire" size={11} glow={false} />
+            </div>
           </Card>
           <Card className="p-4 text-center">
             <div className="text-4xl font-black text-sky-400">{progress.longestStreak}</div>
-            <div className="text-xs text-white/40 mt-1">racha más larga 🏆</div>
+            <div className="text-xs text-white/40 mt-1 flex items-center justify-center gap-0.5">
+              racha más larga <Icon name="trophy" size={11} glow={false} />
+            </div>
           </Card>
           <Card className="p-4 text-center">
             <div className="text-3xl font-black text-emerald-400">{formatMinutes(progress.totalPracticeMinutes)}</div>
@@ -167,10 +173,10 @@ export default function ProgressPage() {
               <Card key={a.id} className="p-3.5 border-white/[0.1] bg-white/[0.04]">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: `${a.color}20` }}
                   >
-                    {a.icon}
+                    <Icon name={a.iconName} size={20} />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
@@ -189,8 +195,8 @@ export default function ProgressPage() {
                 {lockedAchievements.map(a => (
                   <Card key={a.id} className="p-3.5 opacity-40">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center text-xl flex-shrink-0 grayscale">
-                        🔒
+                      <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center flex-shrink-0 grayscale">
+                        <Icon name="lock" size={20} glow={false} />
                       </div>
                       <div>
                         <div className="font-semibold text-white/60 text-sm">{a.title}</div>

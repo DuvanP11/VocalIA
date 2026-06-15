@@ -12,6 +12,8 @@ import { VOICE_TYPE_INFO } from '@/lib/audio/noteUtils';
 import { LEVEL_COLORS, formatMinutes } from '@/lib/utils';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { getWeeklyData, getLevelProgress } from '@/lib/training/progressStore';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -52,20 +54,20 @@ export default function DashboardPage() {
       <header className="px-5 pt-8 pb-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-white/40 text-sm">Hola, {profile.name} 👋</p>
+            <p className="text-white/40 text-sm flex items-center gap-1">Hola, {profile.name} <Icon name="wave" size={14} glow={false} /></p>
             <h1 className="text-2xl font-black text-white mt-0.5">Tu Progreso</h1>
           </div>
           <div className="text-right">
             {streak > 0 ? (
               <div className="bg-amber-500/15 border border-amber-500/30 rounded-xl px-3 py-2">
                 <div className="text-xl font-black text-amber-400">{streak}</div>
-                <div className="text-[10px] text-amber-400/70">días 🔥</div>
+                <div className="text-[10px] text-amber-400/70 flex items-center justify-center gap-0.5">días <Icon name="fire" size={10} glow={false} /></div>
               </div>
             ) : (
               <Link href="/training">
                 <div className="bg-violet-600/15 border border-violet-500/30 rounded-xl px-3 py-2 text-center">
                   <div className="text-xs text-violet-400 font-semibold">Empieza</div>
-                  <div className="text-[10px] text-violet-400/70">hoy 🚀</div>
+                  <div className="text-[10px] text-violet-400/70 flex items-center justify-center gap-0.5">hoy <Icon name="rocket" size={10} glow={false} /></div>
                 </div>
               </Link>
             )}
@@ -76,13 +78,13 @@ export default function DashboardPage() {
       <div className="px-5 space-y-6">
         {/* ─── STATS ROW ─── */}
         <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Lecciones', value: completedLessonsCount, icon: '📚', color: 'text-violet-400' },
-            { label: 'Tiempo', value: formatMinutes(totalMin), icon: '⏱️', color: 'text-sky-400' },
-            { label: 'Logros', value: progress.achievements.length, icon: '🏆', color: 'text-amber-400' },
-          ].map(stat => (
+          {([
+            { label: 'Lecciones', value: completedLessonsCount, iconName: 'books' as IconName, color: 'text-violet-400' },
+            { label: 'Tiempo', value: formatMinutes(totalMin), iconName: 'stopwatch' as IconName, color: 'text-sky-400' },
+            { label: 'Logros', value: progress.achievements.length, iconName: 'trophy' as IconName, color: 'text-amber-400' },
+          ] as const).map(stat => (
             <Card key={stat.label} className="p-3 text-center">
-              <div className="text-xl">{stat.icon}</div>
+              <Icon name={stat.iconName} size={20} />
               <div className={`text-lg font-black mt-1 ${stat.color}`}>{stat.value}</div>
               <div className="text-[10px] text-white/40">{stat.label}</div>
             </Card>
@@ -164,7 +166,7 @@ export default function DashboardPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-bold ${colors.text}`}>{level.title}</span>
-                          {isLocked && <span className="text-[10px] text-white/30">🔒 Bloqueado</span>}
+                          {isLocked && <span className="text-[10px] text-white/30 inline-flex items-center gap-0.5"><Icon name="lock" size={10} glow={false} /> Bloqueado</span>}
                           {pct === 100 && <Badge variant="success" size="xs">✓ Completado</Badge>}
                         </div>
                         <ProgressBar
@@ -187,7 +189,7 @@ export default function DashboardPage() {
           <div className="rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-indigo-600/15 to-violet-600/10 p-4 hover:from-indigo-600/20 hover:to-violet-600/15 transition-all active:scale-[0.99]">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl">🤖</span>
+                <Icon name="robot" size={24} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
@@ -215,7 +217,7 @@ export default function DashboardPage() {
             />
             <Card className="p-4">
               <div className="flex items-center gap-4">
-                <div className="text-4xl">🎤</div>
+                <Icon name="microphone" size={36} />
                 <div>
                   <p className="text-xs text-white/40">Tipo detectado</p>
                   <p className="text-xl font-black" style={{
@@ -234,7 +236,7 @@ export default function DashboardPage() {
           <Link href="/assessment">
             <Card className="p-4 border-dashed border-white/10 hover:border-violet-500/30 transition-colors">
               <div className="flex items-center gap-3 text-white/40">
-                <span className="text-2xl">🔬</span>
+                <Icon name="microscope" size={22} />
                 <div>
                   <p className="font-semibold text-white/60">Diagnóstico vocal pendiente</p>
                   <p className="text-xs">Descubre tu tipo de voz →</p>

@@ -8,6 +8,7 @@ import { Button, Card, ProgressBar, ScoreRing, Badge } from '@/components/ui';
 import { TunerDisplay } from '@/components/audio/TunerDisplay';
 import { AudioVisualizer } from '@/components/audio/AudioVisualizer';
 import { usePitchDetector } from '@/hooks/usePitchDetector';
+import { Icon } from '@/components/ui/Icon';
 import { getLessonById, getNextLesson } from '@/lib/training/curriculum';
 import { NOTE_NAMES_ES, NOTE_NAMES_EN } from '@/lib/audio/noteUtils';
 import { playNote, playNoteSequence, stopCurrentNote } from '@/lib/audio/playNote';
@@ -227,14 +228,14 @@ export default function LessonPage() {
                 <span className="text-4xl">{lesson.icon}</span>
                 <div>
                   <h2 className="text-lg font-bold text-white">{lesson.title}</h2>
-                  <span className="text-xs text-white/40">⏱ {lesson.duration} minutos</span>
+                  <span className="text-xs text-white/40 inline-flex items-center gap-0.5"><Icon name="stopwatch" size={11} glow={false} /> {lesson.duration} minutos</span>
                 </div>
               </div>
               <p className="text-sm text-white/70 leading-relaxed">{lesson.content.introduction}</p>
             </Card>
 
             <Card className="p-4">
-              <h3 className="text-sm font-bold text-violet-400 mb-3">📌 Puntos clave</h3>
+              <h3 className="text-sm font-bold text-violet-400 mb-3 flex items-center gap-1.5"><Icon name="pin" size={14} glow={false} /> Puntos clave</h3>
               <ul className="space-y-2.5">
                 {lesson.content.keyPoints.map((kp, i) => (
                   <li key={i} className="flex gap-2.5 text-sm text-white/70">
@@ -247,7 +248,7 @@ export default function LessonPage() {
 
             {lesson.content.tips.length > 0 && (
               <Card className="p-4 bg-amber-500/[0.05] border-amber-500/20">
-                <h3 className="text-sm font-bold text-amber-400 mb-3">💡 Tips del profesor</h3>
+                <h3 className="text-sm font-bold text-amber-400 mb-3 flex items-center gap-1.5"><Icon name="bulb" size={14} glow={false} /> Tips del profesor</h3>
                 <ul className="space-y-2">
                   {lesson.content.tips.map((tip, i) => (
                     <li key={i} className="text-sm text-white/65 flex gap-2">
@@ -261,7 +262,7 @@ export default function LessonPage() {
 
             {lesson.content.warnings.length > 0 && (
               <Card className="p-4 bg-rose-500/[0.05] border-rose-500/20">
-                <h3 className="text-sm font-bold text-rose-400 mb-3">⚠️ Importante</h3>
+                <h3 className="text-sm font-bold text-rose-400 mb-3 flex items-center gap-1.5"><Icon name="warning" size={14} glow={false} /> Importante</h3>
                 <ul className="space-y-2">
                   {lesson.content.warnings.map((w, i) => (
                     <li key={i} className="text-sm text-white/65 flex gap-2">
@@ -427,7 +428,7 @@ export default function LessonPage() {
 
             {/* ── INSTRUCCIONES ────────────────────────────────── */}
             <Card className="p-4">
-              <h3 className="text-sm font-bold text-white/60 mb-3">🎓 Instrucciones</h3>
+              <h3 className="text-sm font-bold text-white/60 mb-3 flex items-center gap-1.5"><Icon name="graduation" size={14} glow={false} /> Instrucciones</h3>
               <ol className="space-y-2">
                 {currentExercise.instructions.map((instr, i) => (
                   <li key={i} className="flex gap-2.5 text-sm text-white/70">
@@ -447,7 +448,7 @@ export default function LessonPage() {
                   onClick={handleStartExercise}
                   className="w-full"
                 >
-                  🎤 {needsListening && !hasListened ? 'Cantar sin escuchar' : 'Comenzar a Cantar'}
+                  <span className="flex items-center justify-center gap-2"><Icon name="microphone" size={18} glow={false} /> {needsListening && !hasListened ? 'Cantar sin escuchar' : 'Comenzar a Cantar'}</span>
                 </Button>
                 {needsListening && !hasListened && (
                   <p className="text-center text-xs text-white/30">
@@ -470,11 +471,11 @@ export default function LessonPage() {
           <div className="space-y-5">
             <div className="text-center py-4">
               <ScoreRing score={finalScore} size={120} />
-              <h2 className="text-2xl font-black text-white mt-4">
-                {finalScore >= 90 ? '¡Excelente! 🌟' :
-                 finalScore >= 75 ? '¡Bien hecho! 🎉' :
-                 finalScore >= 60 ? 'Buen intento 👍' :
-                 'Sigue practicando 💪'}
+              <h2 className="text-2xl font-black text-white mt-4 flex items-center justify-center gap-2">
+                {finalScore >= 90 ? <><span>¡Excelente!</span><Icon name="star" size={24} /></> :
+                 finalScore >= 75 ? <><span>¡Bien hecho!</span><Icon name="trophy" size={24} /></> :
+                 finalScore >= 60 ? <><span>Buen intento</span><Icon name="thumbs-up" size={24} /></> :
+                 <><span>Sigue practicando</span><Icon name="muscle" size={24} /></>}
               </h2>
               <p className="text-white/50 text-sm mt-1">
                 Lección completada con {finalScore}%

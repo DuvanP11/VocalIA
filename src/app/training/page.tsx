@@ -10,6 +10,7 @@ import { Card, ProgressBar, Badge } from '@/components/ui';
 import { CURRICULUM } from '@/lib/training/curriculum';
 import { LEVEL_COLORS } from '@/lib/utils';
 import { getLevelProgress } from '@/lib/training/progressStore';
+import { Icon } from '@/components/ui/Icon';
 
 export default function TrainingPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function TrainingPage() {
               {/* Cabecera del nivel */}
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${colors.bg} ${colors.text} border ${colors.border}`}>
-                  {isLocked ? '🔒' : pct === 100 ? '✓' : idx + 1}
+                  {isLocked ? <Icon name="lock" size={14} glow={false} /> : pct === 100 ? '✓' : idx + 1}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -99,7 +100,7 @@ export default function TrainingPage() {
                               </div>
                               <p className="text-xs text-white/40 truncate">{lesson.subtitle}</p>
                               <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] text-white/25">⏱ {lesson.duration} min</span>
+                                <span className="text-[10px] text-white/25 inline-flex items-center gap-0.5"><Icon name="stopwatch" size={10} glow={false} /> {lesson.duration} min</span>
                                 <span className="text-[10px] text-white/25">·</span>
                                 <span className="text-[10px] text-white/25 capitalize">{lesson.type.replace('-', ' ')}</span>
                               </div>
