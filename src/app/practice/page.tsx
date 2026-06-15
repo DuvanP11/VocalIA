@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/appStore';
 import { BottomNav, TopBar } from '@/components/layout/Navigation';
 import { Button, Card, Badge } from '@/components/ui';
@@ -8,6 +8,7 @@ import { TunerDisplay } from '@/components/audio/TunerDisplay';
 import { AudioVisualizer } from '@/components/audio/AudioVisualizer';
 import { usePitchDetector } from '@/hooks/usePitchDetector';
 import { NOTE_NAMES_ES, NOTE_NAMES_EN } from '@/lib/audio/noteUtils';
+import type { PitchResult } from '@/types';
 
 const REFERENCE_NOTES = [
   { note: 'A2', freq: 110,   label: 'La2',  icon: '⬇️' },
@@ -29,6 +30,15 @@ export default function PracticePage() {
   const pitchSumRef = useRef(0);
   const [sessionActive, setSessionActive] = useState(false);
 
+  // useCallback estabiliza el callback: si se pasa inline, se recrea en cada render
+  // y desencadena una cadena options→handlePitch→start→toggle que nunca termina.
+  const onPitch = useCallback((p: PitchResult) => {
+    if (p.frequency > 0) {
+      pitchCountRef.current++;
+      pitchSumRef.current += Math.max(0, 100 - Math.abs(p.cents));
+    }
+  }, []);
+
   const {
     isListening,
     isStarting,
@@ -37,14 +47,7 @@ export default function PracticePage() {
     error,
     permissionDenied,
     getAnalyserNode,
-  } = usePitchDetector({
-    onPitch: (p) => {
-      if (p.frequency > 0) {
-        pitchCountRef.current++;
-        pitchSumRef.current += Math.max(0, 100 - Math.abs(p.cents));
-      }
-    },
-  });
+  } = usePitchDetector({ onPitch });
 
   const handleToggle = () => {
     if (!isListening) {
@@ -132,9 +135,15 @@ export default function PracticePage() {
 
         {/* Error de micrófono */}
         {error && (
-          <Card className="p-4 border-rose-500/20 bg-rose-500/[0.05]">
-            <p className="text-sm text-rose-400">⚠️ {error}</p>
-          </Card>
+          <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 space-y-2">
+            <p className="text-sm font-semibold text-rose-300">⚠️ Error de micrófono</p>
+            <p className="text-xs text-rose-400/80">{error}</p>
+            {permissionDenied && (
+              <p className="text-xs text-white/40">
+                En Chrome: ícono 🔒 junto a la URL → Micrófono → Permitir
+              </p>
+            )}
+          </div>
         )}
 
         {/* Botón micrófono */}

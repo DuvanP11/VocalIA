@@ -2,19 +2,19 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Turbopack config (Next.js 16 default)
   turbopack: {},
-  // Headers para SharedArrayBuffer / COOP / COEP requeridos por MediaPipe
   async headers() {
     return [
       {
+        // Permissions-Policy para todas las rutas — permite mic y cámara desde el mismo origen
         source: '/(.*)',
         headers: [
-          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
-          { key: 'Permissions-Policy', value: 'microphone=*, camera=*' },
+          { key: 'Permissions-Policy', value: 'microphone=(self), camera=(self)' },
         ],
       },
+      // COOP/COEP REMOVIDOS: causaban que getUserMedia fallara silenciosamente
+      // en iOS Safari y Chrome Android. SharedArrayBuffer (MediaPipe) no lo requiere
+      // en la versión CDN que usamos (@mediapipe/face_mesh@0.4).
     ];
   },
 };

@@ -7,6 +7,7 @@ const FFT_SIZE = 2048;
 const CLARITY_THRESHOLD = 0.75; // 0-1: confianza mínima para reportar nota
 const MIN_FREQUENCY = 70;       // Hz — por debajo se ignora (ruido)
 const MAX_FREQUENCY = 1400;     // Hz — límite superior vocal
+const MIC_TIMEOUT_MS = 12000;   // 12 s para que el usuario acepte el permiso
 
 export class AudioPitchEngine {
   private audioContext: AudioContext | null = null;
@@ -24,24 +25,24 @@ export class AudioPitchEngine {
     this.onPitch = onPitch;
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error('Micrófono no disponible en este navegador. Asegúrate de usar HTTPS.');
+      throw new DOMException(
+        'getUserMedia no disponible. Asegúrate de usar HTTPS y un navegador compatible.',
+        'NotSupportedError',
+      );
     }
 
-    // Obtener permiso del micrófono PRIMERO — antes de crear AudioContext
-    // Así evitamos que el contexto se suspenda durante el diálogo de permisos
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-      },
-    });
+    // ── 1. Solicitar micrófono con timeout ──────────────────────
+    // getUserMedia puede colgar si el usuario ignora el diálogo → bloqueamos
+    // isStarting para siempre. Promise.race lo resuelve.
+    this.stream = await this.getUserMediaWithTimeout();
 
-    // Crear AudioContext DESPUÉS de tener el stream activo
+    // ── 2. Crear AudioContext DESPUÉS de tener el stream ────────
+    // Crearlo antes haría que iOS/Android lo suspendieran durante el diálogo.
     const AudioCtx = window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     this.audioContext = new AudioCtx();
 
+    // ── 3. Conectar grafo de audio ───────────────────────────────
     this.sourceNode = this.audioContext.createMediaStreamSource(this.stream);
     this.analyser   = this.audioContext.createAnalyser();
     this.analyser.fftSize = FFT_SIZE;
@@ -51,13 +52,49 @@ export class AudioPitchEngine {
     this.detector = PitchyDetector.forFloat32Array(this.analyser.fftSize);
     this.buffer   = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>;
 
-    // Reanudar si el contexto quedó suspendido (política autoplay del navegador)
+    // ── 4. Reanudar si el contexto quedó suspendido ──────────────
     if (this.audioContext.state === 'suspended') {
       await this.audioContext.resume().catch(() => {});
     }
 
     this.isRunning = true;
     this.detectLoop();
+  }
+
+  private async getUserMediaWithTimeout(): Promise<MediaStream> {
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+
+    const timeout = new Promise<never>((_, reject) => {
+      timerId = setTimeout(() => {
+        reject(new Error('Timeout: el diálogo de permisos no respondió en tiempo'));
+      }, MIC_TIMEOUT_MS);
+    });
+
+    // Intentar con constraints de calidad óptimos; si falla, usar audio básico
+    const withConstraints = navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
+
+    try {
+      const stream = await Promise.race([withConstraints, timeout]);
+      clearTimeout(timerId);
+      return stream;
+    } catch (err) {
+      clearTimeout(timerId);
+      // Si el error es NotAllowedError / Timeout, propagar directamente
+      if (
+        err instanceof DOMException ||
+        (err instanceof Error && err.message.includes('Timeout'))
+      ) {
+        throw err;
+      }
+      // Fallback: constraints pueden no ser soportados en algunos navegadores móviles
+      return navigator.mediaDevices.getUserMedia({ audio: true });
+    }
   }
 
   stop(): void {
@@ -78,12 +115,12 @@ export class AudioPitchEngine {
   }
 
   private detectLoop = (): void => {
-    if (!this.isRunning || !this.analyser || !this.detector || !this.buffer) return;
+    if (!this.isRunning || !this.analyser || !this.detector || !this.buffer || !this.audioContext) return;
 
     this.analyser.getFloatTimeDomainData(this.buffer);
     const [frequency, clarity] = this.detector.findPitch(
       this.buffer,
-      this.audioContext!.sampleRate,
+      this.audioContext.sampleRate,
     );
 
     if (
@@ -102,7 +139,6 @@ export class AudioPitchEngine {
         timestamp: Date.now(),
       });
     } else {
-      // Silencio o señal débil
       this.onPitch?.({
         frequency: -1,
         note: '—',
@@ -144,18 +180,17 @@ export class VocalRangeAnalyzer {
     }
 
     const sorted = [...this.detectedFrequencies].sort((a, b) => a - b);
-    // Percentiles para eliminar outliers
-    const p5 = sorted[Math.floor(sorted.length * 0.05)];
+    const p5  = sorted[Math.floor(sorted.length * 0.05)];
     const p95 = sorted[Math.floor(sorted.length * 0.95)];
 
     const filtered = sorted.filter(f => f >= p5 && f <= p95);
     const avg = filtered.reduce((a, b) => a + b, 0) / filtered.length;
 
     return {
-      lowest: filtered[0],
+      lowest:  filtered[0],
       highest: filtered[filtered.length - 1],
       average: avg,
-      count: filtered.length,
+      count:   filtered.length,
       durationSeconds: (Date.now() - this.sessionStart) / 1000,
     };
   }
