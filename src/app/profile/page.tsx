@@ -9,18 +9,9 @@ import { BottomNav, TopBar } from '@/components/layout/Navigation';
 import { Card, Badge } from '@/components/ui';
 import { VOICE_TYPE_INFO } from '@/lib/audio/noteUtils';
 import { Icon } from '@/components/ui/Icon';
+import { AvatarSVG, isAvatarId, AVATAR_IDS, AVATAR_NAMES } from '@/components/ui/AvatarSVGs';
 import { formatMinutes } from '@/lib/utils';
 
-const AVATAR_GROUPS = [
-  {
-    label: 'Música & Voz',
-    items: ['🎤', '🎙️', '🎵', '🎶', '🎸', '🎹', '🎺', '🎻', '🥁', '🎷', '🎧', '🎼'],
-  },
-  {
-    label: 'Personalidad',
-    items: ['🦁', '🐺', '🦅', '🦋', '🌟', '🔥', '💎', '🌈', '⚡', '🌙', '🍀', '🎭'],
-  },
-];
 
 const GOAL_LABELS: Record<string, { label: string; icon: string }> = {
   'sing-in-tune':       { label: 'Cantar afinado',   icon: '🎯' },
@@ -78,15 +69,17 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowAvatarPicker(true)}
-              className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg group flex-shrink-0"
+              className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-lg group flex-shrink-0 bg-gradient-to-br from-violet-600 to-purple-700"
               aria-label="Cambiar avatar"
             >
-              {profile.avatarUrl ? (
-                <span className="text-3xl leading-none">{profile.avatarUrl}</span>
+              {profile.avatarUrl && isAvatarId(profile.avatarUrl) ? (
+                <AvatarSVG id={profile.avatarUrl} size={56} />
               ) : (
-                <span className="text-2xl font-black text-white">{profile.name.charAt(0).toUpperCase()}</span>
+                <span className="w-full h-full flex items-center justify-center text-2xl font-black text-white">
+                  {profile.name.charAt(0).toUpperCase()}
+                </span>
               )}
-              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="text-white text-xs font-bold">✏️</span>
               </div>
             </button>
@@ -118,49 +111,50 @@ export default function ProfilePage() {
                 <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
 
-              {/* Preview del avatar seleccionado */}
+              {/* Preview */}
               <div className="flex flex-col items-center gap-2 pt-4 pb-5">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-900/50">
-                  {profile.avatarUrl
-                    ? <span className="text-5xl leading-none">{profile.avatarUrl}</span>
-                    : <span className="text-4xl font-black text-white">{profile.name.charAt(0).toUpperCase()}</span>
-                  }
+                <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-lg shadow-violet-900/50 bg-gradient-to-br from-violet-600 to-purple-700">
+                  {profile.avatarUrl && isAvatarId(profile.avatarUrl) ? (
+                    <AvatarSVG id={profile.avatarUrl} size={80} />
+                  ) : (
+                    <span className="w-full h-full flex items-center justify-center text-4xl font-black text-white">
+                      {profile.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-white/40">Toca un avatar para elegirlo</p>
+                <p className="text-xs text-white/40">Toca un personaje para elegirlo</p>
               </div>
 
-              {/* Grupos */}
-              <div className="px-5 pb-8 space-y-5 overflow-y-auto max-h-[55vh]">
-                {AVATAR_GROUPS.map(group => (
-                  <div key={group.label}>
-                    <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest mb-3">
-                      {group.label}
-                    </p>
-                    <div className="grid grid-cols-4 gap-3">
-                      {group.items.map(emoji => {
-                        const isSelected = profile.avatarUrl === emoji;
-                        return (
-                          <button
-                            key={emoji}
-                            onClick={() => { setAvatar(emoji); setShowAvatarPicker(false); }}
-                            className={`aspect-square rounded-2xl text-4xl flex items-center justify-center transition-all duration-150 ${
-                              isSelected
-                                ? 'bg-violet-500/25 border-2 border-violet-400 shadow-lg shadow-violet-900/40 scale-105'
-                                : 'bg-white/[0.05] border border-white/[0.07] hover:bg-white/10 active:scale-90'
-                            }`}
-                          >
-                            {emoji}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+              {/* Grid de avatares SVG */}
+              <div className="px-5 pb-8 overflow-y-auto max-h-[55vh]">
+                <div className="grid grid-cols-3 gap-4">
+                  {AVATAR_IDS.map(id => {
+                    const isSelected = profile.avatarUrl === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => { setAvatar(id); setShowAvatarPicker(false); }}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-150 ${
+                          isSelected
+                            ? 'border-violet-400 bg-violet-500/15 scale-105 shadow-lg shadow-violet-900/30'
+                            : 'border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.07] active:scale-95'
+                        }`}
+                      >
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden">
+                          <AvatarSVG id={id} size={64} />
+                        </div>
+                        <span className="text-[10px] text-white/50 font-medium text-center leading-tight">
+                          {AVATAR_NAMES[id]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
                 {profile.avatarUrl && (
                   <button
                     onClick={() => { setAvatar(''); setShowAvatarPicker(false); }}
-                    className="w-full py-2.5 rounded-xl border border-white/[0.07] text-xs text-white/30 hover:text-white/60 hover:border-white/20 transition-all"
+                    className="mt-4 w-full py-2.5 rounded-xl border border-white/[0.07] text-xs text-white/30 hover:text-white/60 hover:border-white/20 transition-all"
                   >
                     Quitar avatar y usar inicial
                   </button>
