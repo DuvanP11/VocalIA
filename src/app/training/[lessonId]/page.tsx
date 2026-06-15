@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAppStore } from '@/store/appStore';
 import { TopBar } from '@/components/layout/Navigation';
@@ -13,6 +13,7 @@ import { getLessonById, getNextLesson } from '@/lib/training/curriculum';
 import { NOTE_NAMES_ES, NOTE_NAMES_EN } from '@/lib/audio/noteUtils';
 import { playNote, playNoteSequence, stopCurrentNote } from '@/lib/audio/playNote';
 import { FaceAnalysisPanel } from '@/components/facial/FaceAnalysisPanel';
+import { useSpeech } from '@/hooks/useSpeech';
 import type { Exercise, ExerciseType } from '@/types';
 
 type LessonPhase = 'theory' | 'exercise' | 'results';
@@ -57,6 +58,8 @@ export default function LessonPage() {
     stop: stopMic,
     getAnalyserNode,
   } = usePitchDetector();
+
+  const { speak, stop: stopSpeech, isSpeaking, isSupported: ttsSupported } = useSpeech();
 
   useEffect(() => {
     if (!lesson) router.replace('/training');
@@ -104,6 +107,25 @@ export default function LessonPage() {
       setPitchAccuracies(prev => [...prev, accuracy]);
     }
   }, [currentPitch, isListening, isExerciseRunning]);
+
+  // Scripts de texto para TTS
+  const theoryScript = useMemo(() => {
+    if (!lesson) return '';
+    const parts = [
+      lesson.title + '. ',
+      lesson.content.introduction + '. ',
+      lesson.content.keyPoints.length > 0
+        ? 'Puntos clave. ' + lesson.content.keyPoints.map((kp, i) => `${i + 1}. ${kp}`).join('. ') + '. '
+        : '',
+      lesson.content.tips.length > 0
+        ? 'Tips del profesor. ' + lesson.content.tips.join('. ') + '. '
+        : '',
+      lesson.content.warnings.length > 0
+        ? 'Importante. ' + lesson.content.warnings.join('. ')
+        : '',
+    ];
+    return parts.join('');
+  }, [lesson]);
 
   if (!lesson || !level) return null;
 
@@ -160,6 +182,7 @@ export default function LessonPage() {
   // ─── Iniciar ejercicio ───────────────────────────────────────
 
   const handleStartExercise = async () => {
+    stopSpeech();
     stopCurrentNote();
     setIsPlayingNote(false);
     setPitchAccuracies([]);
@@ -226,10 +249,24 @@ export default function LessonPage() {
             <Card className="p-5">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">{lesson.icon}</span>
-                <div>
+                <div className="flex-1">
                   <h2 className="text-lg font-bold text-white">{lesson.title}</h2>
                   <span className="text-xs text-white/40 inline-flex items-center gap-0.5"><Icon name="stopwatch" size={11} glow={false} /> {lesson.duration} minutos</span>
                 </div>
+                {ttsSupported && (
+                  <button
+                    onClick={() => isSpeaking ? stopSpeech() : speak(theoryScript)}
+                    aria-label={isSpeaking ? 'Detener lectura' : 'Escuchar lección'}
+                    className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl border transition-all flex-shrink-0 ${
+                      isSpeaking
+                        ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                        : 'bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white/70 hover:border-white/20'
+                    }`}
+                  >
+                    <Icon name="headphone" size={13} glow={false} />
+                    {isSpeaking ? 'Detener' : 'Escuchar'}
+                  </button>
+                )}
               </div>
               <p className="text-sm text-white/70 leading-relaxed">{lesson.content.introduction}</p>
             </Card>
@@ -428,7 +465,27 @@ export default function LessonPage() {
 
             {/* ── INSTRUCCIONES ────────────────────────────────── */}
             <Card className="p-4">
-              <h3 className="text-sm font-bold text-white/60 mb-3 flex items-center gap-1.5"><Icon name="graduation" size={14} glow={false} /> Instrucciones</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-white/60 flex items-center gap-1.5"><Icon name="graduation" size={14} glow={false} /> Instrucciones</h3>
+                {ttsSupported && (
+                  <button
+                    onClick={() => {
+                      if (isSpeaking) { stopSpeech(); return; }
+                      const script = `${currentExercise.name}. ${currentExercise.description}. Instrucciones. ${currentExercise.instructions.map((ins, i) => `${i + 1}. ${ins}`).join('. ')}`;
+                      speak(script);
+                    }}
+                    aria-label={isSpeaking ? 'Detener' : 'Escuchar instrucciones'}
+                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg border transition-all ${
+                      isSpeaking
+                        ? 'bg-violet-500/15 border-violet-500/30 text-violet-400'
+                        : 'bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/60'
+                    }`}
+                  >
+                    <Icon name="headphone" size={12} glow={false} />
+                    {isSpeaking ? 'Detener' : 'Escuchar'}
+                  </button>
+                )}
+              </div>
               <ol className="space-y-2">
                 {currentExercise.instructions.map((instr, i) => (
                   <li key={i} className="flex gap-2.5 text-sm text-white/70">
