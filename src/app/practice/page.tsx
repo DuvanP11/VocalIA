@@ -54,7 +54,7 @@ export default function PracticePage() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef   = useRef<MediaStreamAudioSourceNode | null>(null);
   const detectorRef = useRef<PitchDetector<Float32Array> | null>(null);
-  const bufferRef   = useRef<Float32Array | null>(null);
+  const bufferRef   = useRef<Float32Array<ArrayBuffer> | null>(null);
   const rafRef      = useRef<number | null>(null);
 
   // ── Parar ────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ export default function PracticePage() {
     analyserRef.current = analyser;
     sourceRef.current   = source;
     detectorRef.current = PitchDetector.forFloat32Array(analyser.fftSize);
-    bufferRef.current   = new Float32Array(analyser.fftSize);
+    bufferRef.current   = new Float32Array(analyser.fftSize) as Float32Array<ArrayBuffer>;
 
     setAnalyserNode(analyser);
     setMicState('active');
