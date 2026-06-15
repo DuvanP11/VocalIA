@@ -21,7 +21,6 @@ const REFERENCE_NOTES = [
   { note: 'A5', freq: 880,   label: 'La5' },
 ];
 
-// ─── Estado del micrófono ───────────────────────────────────────
 type MicState = 'idle' | 'requesting' | 'active' | 'error';
 
 export default function PracticePage() {
@@ -31,20 +30,26 @@ export default function PracticePage() {
   const pitchCountRef   = useRef(0);
   const pitchSumRef     = useRef(0);
 
-  // ── Estado del micrófono (sin hook intermedio) ───────────────
-  const [micState,   setMicState]   = useState<MicState>('idle');
+  // ── Estado del micrófono ─────────────────────────────────────
+  const [micState, setMicState] = useState<MicState>('idle');
+  // micStateRef siempre en sincronía con micState — evita stale closures
+  // en startMic/stopMic que tienen deps vacías
+  const micStateRef = useRef<MicState>('idle');
+
   const [micError,   setMicError]   = useState('');
   const [currentPitch, setCurrentPitch] = useState<PitchResult | null>(null);
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
 
-  // ── Diagnóstico — capacidades del navegador ──────────────────
-  const [diag, setDiag] = useState('');
+  // ── Diagnóstico ──────────────────────────────────────────────
+  const [diag,   setDiag]   = useState('');
+  const [clicks, setClicks] = useState(0);
+
   useEffect(() => {
     const parts: string[] = [];
     parts.push(`protocol: ${window.location.protocol}`);
     parts.push(`mediaDevices: ${!!navigator.mediaDevices}`);
     parts.push(`getUserMedia: ${typeof navigator.mediaDevices?.getUserMedia}`);
-    parts.push(`AudioContext: ${!!(window.AudioContext || (window as unknown as Record<string, unknown>).webkitAudioContext)}`);
+    parts.push(`ctx: ${!!(window.AudioContext || (window as unknown as Record<string, unknown>).webkitAudioContext)}`);
     setDiag(parts.join(' | '));
   }, []);
 
@@ -57,51 +62,57 @@ export default function PracticePage() {
   const bufferRef   = useRef<Float32Array<ArrayBuffer> | null>(null);
   const rafRef      = useRef<number | null>(null);
 
+  // helper: actualiza ref y estado juntos (useCallback vacío = stable)
+  const syncMicState = useCallback((s: MicState) => {
+    micStateRef.current = s;
+    setMicState(s);
+  }, []);
+
   // ── Parar ────────────────────────────────────────────────────
   const stopMic = useCallback(() => {
     if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
     sourceRef.current?.disconnect();
     streamRef.current?.getTracks().forEach(t => t.stop());
     ctxRef.current?.close();
-    streamRef.current = null;
-    ctxRef.current    = null;
+    streamRef.current   = null;
+    ctxRef.current      = null;
     analyserRef.current = null;
     sourceRef.current   = null;
     detectorRef.current = null;
     bufferRef.current   = null;
     setAnalyserNode(null);
     setCurrentPitch(null);
-    setMicState('idle');
-  }, []);
+    syncMicState('idle');
+  }, [syncMicState]);
 
   // ── Iniciar ──────────────────────────────────────────────────
+  // Deps vacías — usa micStateRef en vez de micState para evitar stale closures
   const startMic = useCallback(async () => {
-    if (micState !== 'idle') return;
-
-    setMicState('requesting');
+    if (micStateRef.current !== 'idle') return;
+    syncMicState('requesting');
     setMicError('');
 
-    // ── Paso 1: Verificar soporte ────────────────────────────
+    // Paso 1: soporte
     if (!navigator.mediaDevices?.getUserMedia) {
       setMicError('getUserMedia no disponible. Usa Chrome/Safari con HTTPS.');
-      setMicState('error');
+      syncMicState('error');
       return;
     }
 
-    // ── Paso 2: Pedir permiso ────────────────────────────────
+    // Paso 2: permiso
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
       const e = err as DOMException | Error;
       const name = e instanceof DOMException ? e.name : 'Error';
-      const msg  = e.message ?? String(e);
+      const msg  = (e as Error).message ?? String(e);
       setMicError(`${name}: ${msg}`);
-      setMicState('error');
+      syncMicState('error');
       return;
     }
 
-    // ── Paso 3: Crear AudioContext ───────────────────────────
+    // Paso 3: AudioContext
     let ctx: AudioContext;
     try {
       const AC = window.AudioContext ||
@@ -111,12 +122,12 @@ export default function PracticePage() {
     } catch (err) {
       stream.getTracks().forEach(t => t.stop());
       const msg = err instanceof Error ? err.message : String(err);
-      setMicError(`AudioContext error: ${msg}`);
-      setMicState('error');
+      setMicError(`AudioContext: ${msg}`);
+      syncMicState('error');
       return;
     }
 
-    // ── Paso 4: Conectar nodos ───────────────────────────────
+    // Paso 4: grafo de audio
     const source   = ctx.createMediaStreamSource(stream);
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 2048;
@@ -131,15 +142,14 @@ export default function PracticePage() {
     bufferRef.current   = new Float32Array(analyser.fftSize) as Float32Array<ArrayBuffer>;
 
     setAnalyserNode(analyser);
-    setMicState('active');
+    syncMicState('active');
 
-    // ── Paso 5: Loop de detección ────────────────────────────
+    // Paso 5: loop de detección
     const detect = () => {
       const an  = analyserRef.current;
       const det = detectorRef.current;
       const buf = bufferRef.current;
       const c   = ctxRef.current;
-
       if (!an || !det || !buf || !c) return;
 
       an.getFloatTimeDomainData(buf);
@@ -162,18 +172,20 @@ export default function PracticePage() {
       } else {
         setCurrentPitch(null);
       }
-
       rafRef.current = requestAnimationFrame(detect);
     };
     rafRef.current = requestAnimationFrame(detect);
-  }, [micState]);
+  }, [syncMicState]);
 
-  // ── Cleanup al desmontar ─────────────────────────────────────
+  // Cleanup al desmontar
   useEffect(() => () => stopMic(), [stopMic]);
 
   // ── Toggle ───────────────────────────────────────────────────
   const handleToggle = () => {
-    if (micState === 'active') {
+    setClicks(c => c + 1); // diagnóstico — debe incrementar con cada toque
+    const state = micStateRef.current; // leer desde ref, no desde closure
+
+    if (state === 'active') {
       const durationMin = Math.round((Date.now() - sessionStartRef.current) / 60000);
       const avgAcc = pitchCountRef.current > 0
         ? Math.round(pitchSumRef.current / pitchCountRef.current) : 0;
@@ -187,11 +199,11 @@ export default function PracticePage() {
         });
       }
       stopMic();
-    } else if (micState === 'idle' || micState === 'error') {
+    } else if (state === 'idle' || state === 'error') {
       sessionStartRef.current = Date.now();
       pitchCountRef.current   = 0;
       pitchSumRef.current     = 0;
-      if (micState === 'error') setMicState('idle');
+      if (state === 'error') syncMicState('idle');
       startMic();
     }
   };
@@ -203,7 +215,7 @@ export default function PracticePage() {
   const playReferenceNote = (freq: number) => {
     try {
       const ctx = new AudioContext();
-      const osc = ctx.createOscillator();
+      const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
       osc.frequency.value = freq; osc.type = 'sine';
@@ -219,24 +231,20 @@ export default function PracticePage() {
         title="Práctica Libre"
         subtitle="Modo afinador en tiempo real"
         action={
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => setVisType(v => v === 'waveform' ? 'frequency' : 'waveform')}
-              className="text-xs text-white/40 hover:text-white/70 bg-white/[0.05] px-2 py-1 rounded-lg transition-colors"
-            >
-              {visType === 'waveform' ? '📊' : '〰️'}
-            </button>
-          </div>
+          <button
+            onClick={() => setVisType(v => v === 'waveform' ? 'frequency' : 'waveform')}
+            className="text-xs text-white/40 hover:text-white/70 bg-white/[0.05] px-2 py-1 rounded-lg transition-colors cursor-pointer"
+          >
+            {visType === 'waveform' ? '📊' : '〰️'}
+          </button>
         }
       />
 
       <div className="px-5 pt-6 space-y-6">
 
-        {/* ── Diagnóstico (siempre visible para debug) ───────── */}
+        {/* ── Diagnóstico ─────────────────────────────────────── */}
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 space-y-1">
-          <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
-            Estado del sistema
-          </p>
+          <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Estado del sistema</p>
           <p className="text-[10px] font-mono text-white/30 break-all">{diag || '...'}</p>
           <p className="text-[10px] font-mono">
             <span className={`font-bold ${
@@ -247,18 +255,19 @@ export default function PracticePage() {
             }`}>
               mic: {micState}
             </span>
+            <span className="text-white/20 ml-2">| clicks: {clicks}</span>
           </p>
           {micError && (
             <p className="text-[10px] font-mono text-rose-400 break-all">{micError}</p>
           )}
         </div>
 
-        {/* ── Afinador principal ─────────────────────────────── */}
+        {/* ── Afinador ────────────────────────────────────────── */}
         <Card className={`p-6 transition-all duration-300 ${isListening ? 'border-violet-500/30 bg-violet-500/[0.04]' : ''}`}>
           <TunerDisplay pitch={currentPitch} isListening={isListening} />
         </Card>
 
-        {/* ── Visualizador ───────────────────────────────────── */}
+        {/* ── Visualizador ─────────────────────────────────────── */}
         <AudioVisualizer
           analyserNode={analyserNode}
           isActive={isListening}
@@ -267,42 +276,46 @@ export default function PracticePage() {
           height={80}
         />
 
-        {/* ── Error prominente ────────────────────────────────── */}
+        {/* ── Error ────────────────────────────────────────────── */}
         {micState === 'error' && micError && (
           <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 space-y-2">
             <p className="text-sm font-semibold text-rose-300">⚠️ Error de micrófono</p>
             <p className="text-xs text-rose-400/80 break-all">{micError}</p>
             {micError.includes('NotAllowed') && (
               <p className="text-xs text-white/40">
-                Ve a ajustes del navegador → Micrófono → Permitir para este sitio
+                Ve a Ajustes del navegador → Micrófono → Permitir para este sitio
               </p>
             )}
           </div>
         )}
 
-        {/* ── Botón micrófono ─────────────────────────────────── */}
+        {/* ── Botón micrófono ──────────────────────────────────── */}
         <div className="flex flex-col items-center gap-2">
           <button
             onClick={handleToggle}
             disabled={isRequesting}
-            className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all duration-200 disabled:opacity-60 ${
-              isListening
+            style={{ touchAction: 'manipulation' }}
+            className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl
+              transition-all duration-200 cursor-pointer select-none
+              disabled:opacity-60 disabled:cursor-not-allowed
+              active:scale-95
+              ${isListening
                 ? 'bg-violet-600 shadow-2xl shadow-violet-900/50'
                 : isRequesting
                   ? 'bg-white/[0.07] border border-white/[0.12] animate-pulse'
                   : 'bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.12]'
-            }`}
+              }`}
           >
             {isListening ? '🔴' : isRequesting ? '⏳' : '🎤'}
           </button>
           <p className="text-center text-xs text-white/30 h-4">
             {isListening   ? 'Toca para detener' :
              isRequesting  ? 'Esperando permiso del navegador…' :
-             micState === 'error' ? 'Toca para reintentar' : ''}
+             micState === 'error' ? 'Toca para reintentar' : 'Toca para comenzar'}
           </p>
         </div>
 
-        {/* ── Notas de referencia ─────────────────────────────── */}
+        {/* ── Notas de referencia ──────────────────────────────── */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-white/60">Notas de referencia</h3>
@@ -315,7 +328,8 @@ export default function PracticePage() {
                 <button
                   key={ref.note}
                   onClick={() => playReferenceNote(ref.freq)}
-                  className={`py-3 rounded-xl border text-center transition-all ${
+                  style={{ touchAction: 'manipulation' }}
+                  className={`py-3 rounded-xl border text-center transition-all cursor-pointer ${
                     isCurrent
                       ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
                       : 'bg-white/[0.03] border-white/[0.07] text-white/50 hover:bg-white/[0.07]'
