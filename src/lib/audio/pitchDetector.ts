@@ -24,13 +24,15 @@ export class AudioPitchEngine {
 
     this.onPitch = onPitch;
     this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
 
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false,
-        sampleRate: 44100,
       },
     });
 

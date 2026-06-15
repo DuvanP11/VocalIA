@@ -53,7 +53,6 @@ export function useSongPlayer(): UseSongPlayerReturn {
         ctxRef.current = new AudioContext();
       }
       const ctx = ctxRef.current;
-      if (ctx.state === 'suspended') await ctx.resume();
 
       const arrayBuffer = await blob.arrayBuffer();
       const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
@@ -85,6 +84,7 @@ export function useSongPlayer(): UseSongPlayerReturn {
   const play = useCallback(() => {
     if (!ctxRef.current || !bufferRef.current) return;
     const ctx = ctxRef.current;
+    if (ctx.state === 'suspended') ctx.resume();
 
     stoppedRef.current = true;
     sourceRef.current?.stop();
