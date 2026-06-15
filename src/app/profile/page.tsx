@@ -11,10 +11,15 @@ import { VOICE_TYPE_INFO } from '@/lib/audio/noteUtils';
 import { Icon } from '@/components/ui/Icon';
 import { formatMinutes } from '@/lib/utils';
 
-const AVATARS = [
-  '🎤','🎵','🎶','🎸','🎹','🎺','🎻','🥁','🎷','🎼',
-  '🐱','🦁','🐶','🦊','🐸','🦋','🌟','⚡','🔥','💎',
-  '🌈','🌊','🦅','🎭','🍀','🌙','☀️','🌺',
+const AVATAR_GROUPS = [
+  {
+    label: 'Música & Voz',
+    items: ['🎤', '🎙️', '🎵', '🎶', '🎸', '🎹', '🎺', '🎻', '🥁', '🎷', '🎧', '🎼'],
+  },
+  {
+    label: 'Personalidad',
+    items: ['🦁', '🐺', '🦅', '🦋', '🌟', '🔥', '💎', '🌈', '⚡', '🌙', '🍀', '🎭'],
+  },
 ];
 
 const GOAL_LABELS: Record<string, { label: string; icon: string }> = {
@@ -103,36 +108,64 @@ export default function ProfilePage() {
             className="fixed inset-0 z-50 flex items-end justify-center"
             onClick={() => setShowAvatarPicker(false)}
           >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
             <div
-              className="relative w-full max-w-lg bg-[#0f1019] border-t border-white/10 rounded-t-3xl p-6 pb-10"
+              className="relative w-full max-w-lg bg-[#0d0e18] border border-white/10 rounded-t-3xl shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-5" />
-              <h3 className="text-base font-bold text-white mb-4">Elige tu avatar</h3>
-              <div className="grid grid-cols-7 gap-2">
-                {AVATARS.map(emoji => (
-                  <button
-                    key={emoji}
-                    onClick={() => { setAvatar(emoji); setShowAvatarPicker(false); }}
-                    className={`aspect-square rounded-xl text-2xl flex items-center justify-center transition-all ${
-                      profile.avatarUrl === emoji
-                        ? 'bg-violet-500/30 border-2 border-violet-400 scale-110'
-                        : 'bg-white/[0.05] hover:bg-white/10 active:scale-95'
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-white/20" />
               </div>
-              {profile.avatarUrl && (
-                <button
-                  onClick={() => { setAvatar(''); setShowAvatarPicker(false); }}
-                  className="mt-4 w-full text-xs text-white/30 hover:text-white/60 transition-colors py-2"
-                >
-                  Quitar avatar
-                </button>
-              )}
+
+              {/* Preview del avatar seleccionado */}
+              <div className="flex flex-col items-center gap-2 pt-4 pb-5">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-900/50">
+                  {profile.avatarUrl
+                    ? <span className="text-5xl leading-none">{profile.avatarUrl}</span>
+                    : <span className="text-4xl font-black text-white">{profile.name.charAt(0).toUpperCase()}</span>
+                  }
+                </div>
+                <p className="text-xs text-white/40">Toca un avatar para elegirlo</p>
+              </div>
+
+              {/* Grupos */}
+              <div className="px-5 pb-8 space-y-5 overflow-y-auto max-h-[55vh]">
+                {AVATAR_GROUPS.map(group => (
+                  <div key={group.label}>
+                    <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest mb-3">
+                      {group.label}
+                    </p>
+                    <div className="grid grid-cols-4 gap-3">
+                      {group.items.map(emoji => {
+                        const isSelected = profile.avatarUrl === emoji;
+                        return (
+                          <button
+                            key={emoji}
+                            onClick={() => { setAvatar(emoji); setShowAvatarPicker(false); }}
+                            className={`aspect-square rounded-2xl text-4xl flex items-center justify-center transition-all duration-150 ${
+                              isSelected
+                                ? 'bg-violet-500/25 border-2 border-violet-400 shadow-lg shadow-violet-900/40 scale-105'
+                                : 'bg-white/[0.05] border border-white/[0.07] hover:bg-white/10 active:scale-90'
+                            }`}
+                          >
+                            {emoji}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                {profile.avatarUrl && (
+                  <button
+                    onClick={() => { setAvatar(''); setShowAvatarPicker(false); }}
+                    className="w-full py-2.5 rounded-xl border border-white/[0.07] text-xs text-white/30 hover:text-white/60 hover:border-white/20 transition-all"
+                  >
+                    Quitar avatar y usar inicial
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
