@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>VocalIA — Test Micrófono</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #080a12;
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 24px 20px;
+      min-height: 100dvh;
+    }
+    h1 { font-size: 1.2rem; margin-bottom: 4px; }
+    .sub { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-bottom: 24px; }
+    button {
+      display: block;
+      width: 100%;
+      padding: 22px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: #7c6aff;
+      color: white;
+      border: none;
+      border-radius: 18px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      margin-bottom: 12px;
+      transition: opacity 0.1s;
+    }
+    button:active { opacity: 0.7; }
+    button.reset {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.85rem;
+    }
+    #log {
+      background: #0f111a;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      font-family: 'Menlo', 'Monaco', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      min-height: 260px;
+      max-height: 60vh;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: rgba(255,255,255,0.55);
+    }
+    .ok  { color: #4ade80; }
+    .err { color: #f87171; }
+    .info { color: #60a5fa; }
+    .sep { color: rgba(255,255,255,0.15); }
+    #status {
+      margin-bottom: 16px;
+      font-size: 0.8rem;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+  </style>
+</head>
+<body>
+  <h1>🎤 Test Micrófono</h1>
+  <p class="sub">Diagnóstico VocalIA — sin React</p>
+
+  <div id="status">Estado: <strong id="statusText">listo</strong></div>
+
+  <button id="mainBtn" onclick="doTest()">Probar Micrófono</button>
+  <button class="reset" onclick="resetLog()">Limpiar log</button>
+
+  <div id="log"></div>
+
+  <script>
+    var clicks = 0;
+    var logEl = document.getElementById('log');
+    var statusEl = document.getElementById('statusText');
+    var btn = document.getElementById('mainBtn');
+
+    function ts() {
+      return new Date().toLocaleTimeString('es', { hour12: false });
+    }
+
+    function log(msg, cls) {
+      var line = document.createElement('span');
+      line.textContent = '[' + ts() + '] ' + msg + '\n';
+      if (cls) line.className = cls;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setStatus(txt) {
+      statusEl.textContent = txt;
+    }
+
+    function resetLog() {
+      logEl.innerHTML = '';
+      clicks = 0;
+      btn.textContent = 'Probar Micrófono';
+      setStatus('listo');
+    }
+
+    // Captura de errores JS globales
+    window.onerror = function(msg, src, line) {
+      log('JS ERROR: ' + msg + ' (' + src + ':' + line + ')', 'err');
+    };
+
+    // Info al cargar
+    window.addEventListener('load', function() {
+      log('=== Página cargada ===', 'sep');
+      log('protocol: ' + window.location.protocol, 'info');
+      log('host: ' + window.location.host, 'info');
+      log('standalone: ' + (window.navigator.standalone === true ? 'SI (PWA)' : 'NO'), 'info');
+      log('mediaDevices: ' + (!!navigator.mediaDevices), 'info');
+      log('getUserMedia: ' + (typeof navigator.mediaDevices?.getUserMedia), 'info');
+      var hasCtx = !!(window.AudioContext || window.webkitAudioContext);
+      log('AudioContext: ' + hasCtx, 'info');
+      log('userAgent: ' + navigator.userAgent.slice(0, 80), 'info');
+      log('=== Listo para probar ===', 'sep');
+    });
+
+    function doTest() {
+      clicks++;
+      log('', 'sep');
+      log('=== CLICK #' + clicks + ' ===', 'sep');
+      setStatus('click recibido (' + clicks + ')');
+      btn.textContent = '⏳ Solicitando permiso...';
+
+      // Verificación paso 1: soporte
+      if (!navigator.mediaDevices) {
+        log('ERROR: navigator.mediaDevices no existe', 'err');
+        log('→ Necesita HTTPS o localhost', 'err');
+        btn.textContent = '❌ Sin soporte';
+        setStatus('error: sin mediaDevices');
+        return;
+      }
+
+      if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        log('ERROR: getUserMedia no es función', 'err');
+        btn.textContent = '❌ Sin getUserMedia';
+        setStatus('error: sin getUserMedia');
+        return;
+      }
+
+      log('Llamando getUserMedia({audio:true})...', 'info');
+      setStatus('esperando permiso del navegador...');
+
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          var tracks = stream.getAudioTracks();
+          log('✅ ÉXITO! Stream obtenido', 'ok');
+          log('Tracks de audio: ' + tracks.length, 'ok');
+          if (tracks[0]) {
+            log('Track label: ' + (tracks[0].label || '(sin label)'), 'ok');
+            log('Track state: ' + tracks[0].readyState, 'ok');
+          }
+
+          // Probar AudioContext también
+          try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            var ctx = new AC();
+            log('AudioContext creado, state: ' + ctx.state, 'ok');
+            var src = ctx.createMediaStreamSource(stream);
+            log('MediaStreamSource conectado', 'ok');
+            ctx.close();
+          } catch(e) {
+            log('AudioContext error: ' + e.message, 'err');
+          }
+
+          stream.getTracks().forEach(function(t) { t.stop(); });
+          btn.textContent = '✅ ¡Funciona! Toca de nuevo para repetir';
+          setStatus('ÉXITO — micrófono funciona');
+        })
+        .catch(function(err) {
+          log('❌ getUserMedia falló:', 'err');
+          log('  name: ' + (err.name || 'desconocido'), 'err');
+          log('  message: ' + (err.message || 'sin mensaje'), 'err');
+          log('  toString: ' + String(err), 'err');
+
+          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            log('→ Permiso DENEGADO. Ve a Ajustes del navegador', 'err');
+            log('→ iOS: Ajustes > Safari > Micrófono > Permitir', 'err');
+          } else if (err.name === 'NotFoundError') {
+            log('→ No se encontró micrófono en este dispositivo', 'err');
+          } else if (err.name === 'NotSupportedError') {
+            log('→ Necesita HTTPS. URL actual: ' + window.location.protocol, 'err');
+          } else {
+            log('→ Error desconocido: ' + err.name, 'err');
+          }
+
+          btn.textContent = '🔄 Error — Toca para reintentar';
+          setStatus('error: ' + (err.name || 'desconocido'));
+        });
+    }
+  </script>
+</body>
+</html>
