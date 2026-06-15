@@ -30,6 +30,7 @@ interface AppState {
   // Acciones — Perfil
   setupProfile: (data: Omit<UserProfile, 'id' | 'createdAt'>) => void;
   setProfile: (profile: UserProfile) => void;
+  setAvatar: (emoji: string) => void;
   completeOnboarding: () => void;
 
   // Acciones — Progreso
@@ -72,6 +73,12 @@ export const useAppStore = create<AppState>()(
       },
 
       setProfile: (profile) => set({ profile, isOnboarded: true }),
+
+      setAvatar: (emoji) => {
+        const { profile } = get();
+        if (!profile) return;
+        set({ profile: { ...profile, avatarUrl: emoji } });
+      },
 
       setProgress: (progress) => set({ progress }),
 

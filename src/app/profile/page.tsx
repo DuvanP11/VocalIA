@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppStore } from '@/store/appStore';
@@ -10,6 +10,12 @@ import { Card, Badge } from '@/components/ui';
 import { VOICE_TYPE_INFO } from '@/lib/audio/noteUtils';
 import { Icon } from '@/components/ui/Icon';
 import { formatMinutes } from '@/lib/utils';
+
+const AVATARS = [
+  '🎤','🎵','🎶','🎸','🎹','🎺','🎻','🥁','🎷','🎼',
+  '🐱','🦁','🐶','🦊','🐸','🦋','🌟','⚡','🔥','💎',
+  '🌈','🌊','🦅','🎭','🍀','🌙','☀️','🌺',
+];
 
 const GOAL_LABELS: Record<string, { label: string; icon: string }> = {
   'sing-in-tune':       { label: 'Cantar afinado',   icon: '🎯' },
@@ -30,8 +36,9 @@ const EXP_LABELS: Record<string, string> = {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isOnboarded, profile, progress, logout } = useAppStore();
+  const { isOnboarded, profile, progress, logout, setAvatar } = useAppStore();
   const hydrated = useHydrated();
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   function handleLogout() {
     const hasAccount = typeof window !== 'undefined' && !!localStorage.getItem('vocalIA:token');
@@ -64,9 +71,20 @@ export default function ProfilePage() {
         {/* Avatar + nombre */}
         <Card className="p-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center text-2xl font-black text-white shadow-lg">
-              {profile.name.charAt(0).toUpperCase()}
-            </div>
+            <button
+              onClick={() => setShowAvatarPicker(true)}
+              className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg group flex-shrink-0"
+              aria-label="Cambiar avatar"
+            >
+              {profile.avatarUrl ? (
+                <span className="text-3xl leading-none">{profile.avatarUrl}</span>
+              ) : (
+                <span className="text-2xl font-black text-white">{profile.name.charAt(0).toUpperCase()}</span>
+              )}
+              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="text-white text-xs font-bold">✏️</span>
+              </div>
+            </button>
             <div>
               <h2 className="text-xl font-black text-white">{profile.name}</h2>
               <p className="text-sm text-white/40">{EXP_LABELS[profile.experience] ?? 'Cantante'}</p>
@@ -78,6 +96,46 @@ export default function ProfilePage() {
             </div>
           </div>
         </Card>
+
+        {/* Modal picker de avatar */}
+        {showAvatarPicker && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center"
+            onClick={() => setShowAvatarPicker(false)}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div
+              className="relative w-full max-w-lg bg-[#0f1019] border-t border-white/10 rounded-t-3xl p-6 pb-10"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-5" />
+              <h3 className="text-base font-bold text-white mb-4">Elige tu avatar</h3>
+              <div className="grid grid-cols-7 gap-2">
+                {AVATARS.map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => { setAvatar(emoji); setShowAvatarPicker(false); }}
+                    className={`aspect-square rounded-xl text-2xl flex items-center justify-center transition-all ${
+                      profile.avatarUrl === emoji
+                        ? 'bg-violet-500/30 border-2 border-violet-400 scale-110'
+                        : 'bg-white/[0.05] hover:bg-white/10 active:scale-95'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              {profile.avatarUrl && (
+                <button
+                  onClick={() => { setAvatar(''); setShowAvatarPicker(false); }}
+                  className="mt-4 w-full text-xs text-white/30 hover:text-white/60 transition-colors py-2"
+                >
+                  Quitar avatar
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Objetivos */}
         <Card className="p-4">
@@ -148,6 +206,11 @@ export default function ProfilePage() {
                 <span className="text-white/60 font-mono text-xs">{item.value}</span>
               </div>
             ))}
+            <div className="pt-1 border-t border-white/[0.06] mt-2">
+              <Link href="/terms" className="text-xs text-violet-400/70 hover:text-violet-400 transition-colors">
+                Términos de uso y Política de privacidad →
+              </Link>
+            </div>
           </div>
         </Card>
 
