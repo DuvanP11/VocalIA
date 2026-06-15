@@ -4,9 +4,9 @@ import type { PitchResult } from '@/types';
 
 // Configuración del motor de detección
 const FFT_SIZE = 2048;
-const CLARITY_THRESHOLD = 0.9;  // 0-1: confianza mínima para reportar nota
-const MIN_FREQUENCY = 70;        // Hz — por debajo se ignora (ruido)
-const MAX_FREQUENCY = 1400;      // Hz — límite superior vocal
+const CLARITY_THRESHOLD = 0.75; // 0-1: confianza mínima para reportar nota
+const MIN_FREQUENCY = 70;       // Hz — por debajo se ignora (ruido)
+const MAX_FREQUENCY = 1400;     // Hz — límite superior vocal
 
 export class AudioPitchEngine {
   private audioContext: AudioContext | null = null;
@@ -21,13 +21,14 @@ export class AudioPitchEngine {
 
   async start(onPitch: (result: PitchResult) => void): Promise<void> {
     if (this.isRunning) return;
-
     this.onPitch = onPitch;
-    this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error('Micrófono no disponible en este navegador. Asegúrate de usar HTTPS.');
     }
 
+    // Obtener permiso del micrófono PRIMERO — antes de crear AudioContext
+    // Así evitamos que el contexto se suspenda durante el diálogo de permisos
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: false,
@@ -36,15 +37,24 @@ export class AudioPitchEngine {
       },
     });
 
+    // Crear AudioContext DESPUÉS de tener el stream activo
+    const AudioCtx = window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    this.audioContext = new AudioCtx();
+
     this.sourceNode = this.audioContext.createMediaStreamSource(this.stream);
-    this.analyser = this.audioContext.createAnalyser();
+    this.analyser   = this.audioContext.createAnalyser();
     this.analyser.fftSize = FFT_SIZE;
     this.analyser.smoothingTimeConstant = 0;
-
     this.sourceNode.connect(this.analyser);
 
     this.detector = PitchyDetector.forFloat32Array(this.analyser.fftSize);
-    this.buffer = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>;
+    this.buffer   = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>;
+
+    // Reanudar si el contexto quedó suspendido (política autoplay del navegador)
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume().catch(() => {});
+    }
 
     this.isRunning = true;
     this.detectLoop();

@@ -421,6 +421,21 @@ export default function SongPracticePage() {
               </div>
             )}
 
+            {player.error && (
+              <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.06] p-3 space-y-2">
+                <p className="text-xs text-rose-400">⚠️ Error al cargar audio: {player.error}</p>
+                <button
+                  onClick={async () => {
+                    const blob = await songStorage.getAudio(songId);
+                    if (blob) player.loadSong(blob);
+                  }}
+                  className="text-xs text-rose-300 underline"
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
+
             <button
               onClick={() => {
                 player.pause();
@@ -430,7 +445,9 @@ export default function SongPracticePage() {
               disabled={!player.isLoaded || pitch.permissionDenied}
               className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold text-base hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-40"
             >
-              🎤 Cantar con esta canción
+              {!player.isLoaded && !player.error
+                ? '⏳ Cargando canción…'
+                : '🎤 Cantar con esta canción'}
             </button>
             {pitch.permissionDenied && (
               <p className="text-xs text-rose-400 text-center">

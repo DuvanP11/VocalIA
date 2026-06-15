@@ -31,6 +31,7 @@ export default function PracticePage() {
 
   const {
     isListening,
+    isStarting,
     currentPitch,
     toggle,
     error,
@@ -137,24 +138,24 @@ export default function PracticePage() {
         )}
 
         {/* Botón micrófono */}
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-2">
           <button
             onClick={handleToggle}
-            className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all duration-200 ${
+            disabled={isStarting}
+            className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all duration-200 disabled:opacity-60 ${
               isListening
                 ? 'bg-violet-600 mic-active shadow-2xl shadow-violet-900/50'
-                : 'bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.12]'
+                : isStarting
+                  ? 'bg-white/[0.07] border border-white/[0.12] animate-pulse'
+                  : 'bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.12]'
             }`}
           >
-            {isListening ? '🔴' : '🎤'}
+            {isListening ? '🔴' : isStarting ? '⏳' : '🎤'}
           </button>
-        </div>
-
-        {isListening && (
-          <p className="text-center text-xs text-white/30 -mt-2">
-            Toca para detener
+          <p className="text-center text-xs text-white/30">
+            {isListening ? 'Toca para detener' : isStarting ? 'Solicitando permiso…' : ''}
           </p>
-        )}
+        </div>
 
         {/* Notas de referencia */}
         <div>

@@ -13,6 +13,7 @@ export function usePitchDetector(options: UsePitchDetectorOptions = {}) {
   const engineRef = useRef<AudioPitchEngine | null>(null);
   const rangeAnalyzerRef = useRef(new VocalRangeAnalyzer());
   const [isListening, setIsListening] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
   const [currentPitch, setCurrentPitch] = useState<PitchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -29,8 +30,9 @@ export function usePitchDetector(options: UsePitchDetectorOptions = {}) {
   );
 
   const start = useCallback(async () => {
-    if (isListening) return;
+    if (isListening || isStarting) return;
     setError(null);
+    setIsStarting(true);
     try {
       if (!engineRef.current) {
         engineRef.current = new AudioPitchEngine();
@@ -38,15 +40,18 @@ export function usePitchDetector(options: UsePitchDetectorOptions = {}) {
       await engineRef.current.start(handlePitch);
       setIsListening(true);
     } catch (err) {
+      engineRef.current = null;
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('Permission') || msg.includes('denied') || msg.includes('NotAllowed')) {
+      if (msg.includes('Permission') || msg.includes('denied') || msg.includes('NotAllowed') || msg.includes('NotFoundError')) {
         setPermissionDenied(true);
-        setError('Permiso de micrófono denegado. Actívalo en la configuración del navegador.');
+        setError('Permiso de micrófono denegado. Actívalo en los ajustes del navegador.');
       } else {
-        setError('No se pudo acceder al micrófono. Verifica que esté conectado.');
+        setError(`No se pudo acceder al micrófono: ${msg}`);
       }
+    } finally {
+      setIsStarting(false);
     }
-  }, [isListening, handlePitch]);
+  }, [isListening, isStarting, handlePitch]);
 
   const stop = useCallback(() => {
     engineRef.current?.stop();
@@ -79,6 +84,7 @@ export function usePitchDetector(options: UsePitchDetectorOptions = {}) {
 
   return {
     isListening,
+    isStarting,
     currentPitch,
     error,
     permissionDenied,
