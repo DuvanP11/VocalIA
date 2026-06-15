@@ -41,6 +41,10 @@ export default function SongPracticePage() {
   const player = useSongPlayer();
   const pitch  = usePitchDetector({ onPitch: () => {} });
 
+  // Ref para leer el pitch más reciente sin stale closure en el interval
+  const latestPitchRef = useRef<typeof pitch.currentPitch>(null);
+  latestPitchRef.current = pitch.currentPitch;
+
   // ── Cargar canción ───────────────────────────────────────────
   useEffect(() => {
     if (!songId) return;
@@ -56,11 +60,15 @@ export default function SongPracticePage() {
   }, [songId]);
 
   // ── Acumular estadísticas en modo práctica ──────────────────
+  // IMPORTANTE: pitch.currentPitch NO va en deps — si lo pusiera, el effect se
+  // re-ejecutaría en cada frame (~60fps) y clearInterval mataría el intervalo
+  // antes de que llegara a dispararse. latestPitchRef se actualiza en cada render
+  // sin necesidad de que el effect se recree.
   useEffect(() => {
     if (practiceState !== 'singing') return;
     const interval = setInterval(() => {
       statsRef.current.totalFrames++;
-      const p = pitch.currentPitch;
+      const p = latestPitchRef.current; // siempre fresco, sin stale closure
       if (p && p.clarity > 0.85 && p.frequency > 80) {
         statsRef.current.singingFrames++;
         statsRef.current.sumCents += Math.abs(p.cents);
@@ -75,7 +83,8 @@ export default function SongPracticePage() {
       }
     }, 100);
     return () => clearInterval(interval);
-  }, [practiceState, pitch.currentPitch, song]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practiceState, song]);
 
   // ── Countdown ────────────────────────────────────────────────
   useEffect(() => {
@@ -352,7 +361,9 @@ export default function SongPracticePage() {
             ? Math.round(stats.inKeyFrames / stats.singingWithPitch * 100) : 0;
           const avgCents   = stats.singingWithPitch > 0
             ? Math.round(stats.sumCents / stats.singingWithPitch) : 0;
-          const overall    = Math.round(inKeyPct * 0.6 + Math.max(0, 100 - avgCents) * 0.4);
+          const overall    = stats.singingWithPitch === 0
+            ? 0
+            : Math.round(inKeyPct * 0.6 + Math.max(0, 100 - avgCents) * 0.4);
 
           return (
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 space-y-4">
