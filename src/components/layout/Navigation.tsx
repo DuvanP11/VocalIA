@@ -11,8 +11,8 @@ const NAV_ITEMS: { href: string; icon: IconName; label: string }[] = [
   { href: '/dashboard', icon: 'lightning',   label: 'Inicio' },
   { href: '/training',  icon: 'graduation',  label: 'Entrenar' },
   { href: '/songs',     icon: 'music-note',  label: 'Canciones' },
-  { href: '/practice',  icon: 'microphone',  label: 'Practicar' },
   { href: '/progress',  icon: 'chart-up',    label: 'Progreso' },
+  { href: '/profile',   icon: 'person',      label: 'Perfil' },
 ];
 
 export function BottomNav() {

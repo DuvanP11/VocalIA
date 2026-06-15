@@ -9,7 +9,8 @@ export type IconName =
   | 'lock' | 'warning' | 'bulb' | 'star' | 'diamond' | 'target'
   | 'key' | 'stopwatch' | 'lungs' | 'muscle' | 'thumbs-up' | 'books'
   | 'headphone' | 'drum' | 'wave' | 'seedling' | 'tree' | 'chick'
-  | 'satellite' | 'check' | 'pin' | 'red-circle' | 'hourglass' | 'heart';
+  | 'satellite' | 'check' | 'pin' | 'red-circle' | 'hourglass' | 'heart'
+  | 'person';
 
 interface IconProps {
   name: IconName;
@@ -442,6 +443,16 @@ export function Icon({ name, size = 24, className, glow = true }: IconProps) {
           <Defs />
           <path d="M12 21C12 21 3 15.5 3 9.5A5 5 0 0 1 12 7A5 5 0 0 1 21 9.5C21 15.5 12 21 12 21Z" fill={f} />
           <path d="M12 10C11 10 10 11 10 12" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.3" />
+        </>
+      );
+      break;
+
+    case 'person':
+      body = (
+        <>
+          <Defs />
+          <circle cx="12" cy="7.5" r="4" fill={f} />
+          <path d="M4 21C4 17.1 7.6 14 12 14C16.4 14 20 17.1 20 21" stroke={s} strokeWidth="1.5" fill={f} fillOpacity="0.35" strokeLinecap="round" />
         </>
       );
       break;
