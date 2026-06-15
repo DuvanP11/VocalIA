@@ -44,6 +44,9 @@ interface AppState {
   setPitch: (pitch: PitchResult | null) => void;
   setListening: (listening: boolean) => void;
 
+  // Sesión
+  logout: () => void;
+
   // Hydration
   setHasHydrated: (v: boolean) => void;
 }
@@ -105,6 +108,14 @@ export const useAppStore = create<AppState>()(
         const { progress } = get();
         if (!progress) return;
         set({ progress: saveAssessment(progress, result) });
+      },
+
+      logout: () => {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('vocalIA:token');
+          localStorage.removeItem('vocalIA:coachingPlan');
+        }
+        set({ profile: null, isOnboarded: false, progress: null, currentPitch: null });
       },
 
       setPitch: (pitch) => set({ currentPitch: pitch }),

@@ -30,8 +30,18 @@ const EXP_LABELS: Record<string, string> = {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isOnboarded, profile, progress } = useAppStore();
+  const { isOnboarded, profile, progress, logout } = useAppStore();
   const hydrated = useHydrated();
+
+  function handleLogout() {
+    const hasAccount = typeof window !== 'undefined' && !!localStorage.getItem('vocalIA:token');
+    const msg = hasAccount
+      ? '¿Cerrar sesión? Podrás ingresar de nuevo con tu cuenta de Google.'
+      : '¿Cerrar sesión? Tu progreso guardado localmente se borrará porque no tienes cuenta vinculada.';
+    if (!confirm(msg)) return;
+    logout();
+    router.replace('/');
+  }
 
   useEffect(() => {
     if (hydrated && !isOnboarded) router.replace('/');
@@ -140,6 +150,15 @@ export default function ProfilePage() {
             ))}
           </div>
         </Card>
+
+        {/* Cerrar sesión */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-2xl border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 active:bg-rose-500/15 text-rose-400 font-semibold text-sm transition-all duration-200"
+        >
+          <Icon name="lock" size={16} glow={false} />
+          Cerrar sesión
+        </button>
 
         {/* Créditos */}
         <p className="text-center text-xs text-white/20 pb-4">
