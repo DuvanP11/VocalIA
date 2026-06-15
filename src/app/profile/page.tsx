@@ -162,7 +162,7 @@ export default function ProfilePage() {
 
         {/* Créditos */}
         <p className="text-center text-xs text-white/20 pb-4">
-          VocalIA · Construido con 💜 y Next.js 14
+          Creado por ByteNova
         </p>
       </div>
 
