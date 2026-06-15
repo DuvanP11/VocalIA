@@ -41,7 +41,7 @@ export function AudioVisualizer({
 
   return (
     <div
-      className={cn('w-full rounded-xl overflow-hidden bg-white/[0.03] border border-white/[0.06]', className)}
+      className={cn('relative w-full rounded-xl overflow-hidden bg-white/[0.03] border border-white/[0.06]', className)}
       style={{ height }}
     >
       <canvas

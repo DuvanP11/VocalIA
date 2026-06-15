@@ -242,55 +242,8 @@ export default function PracticePage() {
 
       <div className="px-5 pt-6 space-y-6">
 
-        {/* ── Diagnóstico ─────────────────────────────────────── */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 space-y-1">
-          <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Estado del sistema</p>
-          <p className="text-[10px] font-mono text-white/30 break-all">{diag || '...'}</p>
-          <p className="text-[10px] font-mono">
-            <span className={`font-bold ${
-              micState === 'active'     ? 'text-green-400' :
-              micState === 'requesting' ? 'text-yellow-400' :
-              micState === 'error'      ? 'text-rose-400'  :
-              'text-white/30'
-            }`}>
-              mic: {micState}
-            </span>
-            <span className="text-white/20 ml-2">| clicks: {clicks}</span>
-          </p>
-          {micError && (
-            <p className="text-[10px] font-mono text-rose-400 break-all">{micError}</p>
-          )}
-        </div>
-
-        {/* ── Afinador ────────────────────────────────────────── */}
-        <Card className={`p-6 transition-all duration-300 ${isListening ? 'border-violet-500/30 bg-violet-500/[0.04]' : ''}`}>
-          <TunerDisplay pitch={currentPitch} isListening={isListening} />
-        </Card>
-
-        {/* ── Visualizador ─────────────────────────────────────── */}
-        <AudioVisualizer
-          analyserNode={analyserNode}
-          isActive={isListening}
-          type={visType}
-          color={visType === 'waveform' ? '#7c6aff' : '#38bdf8'}
-          height={80}
-        />
-
-        {/* ── Error ────────────────────────────────────────────── */}
-        {micState === 'error' && micError && (
-          <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 space-y-2">
-            <p className="text-sm font-semibold text-rose-300">⚠️ Error de micrófono</p>
-            <p className="text-xs text-rose-400/80 break-all">{micError}</p>
-            {micError.includes('NotAllowed') && (
-              <p className="text-xs text-white/40">
-                Ve a Ajustes del navegador → Micrófono → Permitir para este sitio
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ── Botón micrófono ──────────────────────────────────── */}
-        <div className="flex flex-col items-center gap-2">
+        {/* ── Botón micrófono (arriba para evitar solapamiento con BottomNav) ── */}
+        <div className="flex flex-col items-center gap-3 py-2">
           <button
             onClick={handleToggle}
             disabled={isRequesting}
@@ -308,12 +261,49 @@ export default function PracticePage() {
           >
             {isListening ? '🔴' : isRequesting ? '⏳' : '🎤'}
           </button>
-          <p className="text-center text-xs text-white/30 h-4">
+          <p className="text-center text-xs text-white/30">
             {isListening   ? 'Toca para detener' :
-             isRequesting  ? 'Esperando permiso del navegador…' :
+             isRequesting  ? 'Esperando permiso…' :
              micState === 'error' ? 'Toca para reintentar' : 'Toca para comenzar'}
           </p>
+          {/* mini diagnóstico visible */}
+          <p className="text-[10px] font-mono text-white/20">
+            <span className={`font-bold ${
+              micState === 'active'     ? 'text-green-400' :
+              micState === 'requesting' ? 'text-yellow-400' :
+              micState === 'error'      ? 'text-rose-400'  :
+              'text-white/30'
+            }`}>mic: {micState}</span>
+            <span className="ml-2">clicks: {clicks}</span>
+          </p>
         </div>
+
+        {/* ── Error ────────────────────────────────────────────── */}
+        {micState === 'error' && micError && (
+          <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 space-y-2">
+            <p className="text-sm font-semibold text-rose-300">⚠️ Error de micrófono</p>
+            <p className="text-xs text-rose-400/80 break-all">{micError}</p>
+            {micError.includes('NotAllowed') && (
+              <p className="text-xs text-white/40">
+                Ve a Ajustes del navegador → Micrófono → Permitir para este sitio
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ── Afinador ────────────────────────────────────────── */}
+        <Card className={`p-6 transition-all duration-300 ${isListening ? 'border-violet-500/30 bg-violet-500/[0.04]' : ''}`}>
+          <TunerDisplay pitch={currentPitch} isListening={isListening} />
+        </Card>
+
+        {/* ── Visualizador ─────────────────────────────────────── */}
+        <AudioVisualizer
+          analyserNode={analyserNode}
+          isActive={isListening}
+          type={visType}
+          color={visType === 'waveform' ? '#7c6aff' : '#38bdf8'}
+          height={80}
+        />
 
         {/* ── Notas de referencia ──────────────────────────────── */}
         <div>
