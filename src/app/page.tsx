@@ -96,7 +96,7 @@ export default function Home() {
 
       {/* Bottom stats */}
       <div className="w-full border-t border-white/[0.05] px-6 py-5 flex justify-around relative z-10">
-        {[
+        {([
           { value: '5', unit: 'Niveles', iconName: 'graduation' as IconName },
           { value: '40+', unit: 'Lecciones', iconName: 'books' as IconName },
           { value: '100%', unit: 'Gratis MVP', iconName: 'heart' as IconName },
