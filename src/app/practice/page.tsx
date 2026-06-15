@@ -7,6 +7,7 @@ import { Card } from '@/components/ui';
 import { TunerDisplay } from '@/components/audio/TunerDisplay';
 import { AudioVisualizer } from '@/components/audio/AudioVisualizer';
 import { NOTE_NAMES_ES, NOTE_NAMES_EN, frequencyToNoteInfo } from '@/lib/audio/noteUtils';
+import { Icon } from '@/components/ui/Icon';
 import { PitchDetector } from 'pitchy';
 import type { PitchResult } from '@/types';
 
@@ -248,7 +249,7 @@ export default function PracticePage() {
             onClick={handleToggle}
             disabled={isRequesting}
             style={{ touchAction: 'manipulation' }}
-            className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl
+            className={`w-24 h-24 rounded-full flex items-center justify-center
               transition-all duration-200 cursor-pointer select-none
               disabled:opacity-60 disabled:cursor-not-allowed
               active:scale-95
@@ -259,7 +260,11 @@ export default function PracticePage() {
                   : 'bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.12]'
               }`}
           >
-            {isListening ? '🔴' : isRequesting ? '⏳' : '🎤'}
+            {isListening
+              ? <Icon name="red-circle" size={40} glow />
+              : isRequesting
+                ? <Icon name="hourglass" size={40} />
+                : <Icon name="microphone" size={40} />}
           </button>
           <p className="text-center text-xs text-white/30">
             {isListening   ? 'Toca para detener' :

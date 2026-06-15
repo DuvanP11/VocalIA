@@ -4,14 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/appStore';
+import { Icon } from '@/components/ui/Icon';
+import type { IconName } from '@/components/ui/Icon';
 
-const NAV_ITEMS = [
-  { href: '/dashboard', icon: '⚡', label: 'Inicio' },
-  { href: '/training', icon: '🎓', label: 'Entrenar' },
-  { href: '/songs',    icon: '🎵', label: 'Canciones' },
-  { href: '/practice', icon: '🎤', label: 'Practicar' },
-  { href: '/progress', icon: '📈', label: 'Progreso' },
-] as const;
+const NAV_ITEMS: { href: string; icon: IconName; label: string }[] = [
+  { href: '/dashboard', icon: 'lightning',   label: 'Inicio' },
+  { href: '/training',  icon: 'graduation',  label: 'Entrenar' },
+  { href: '/songs',     icon: 'music-note',  label: 'Canciones' },
+  { href: '/practice',  icon: 'microphone',  label: 'Practicar' },
+  { href: '/progress',  icon: 'chart-up',    label: 'Progreso' },
+];
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -34,10 +36,14 @@ export function BottomNav() {
                     : 'text-white/30 hover:text-white/60',
                 )}
               >
-                <span className="text-xl leading-none relative">
-                  {item.icon}
+                <span className="leading-none relative flex items-center justify-center">
+                  <Icon
+                    name={item.icon}
+                    size={22}
+                    glow={isActive}
+                  />
                   {item.label === 'Inicio' && streak > 0 && (
-                    <span className="absolute -top-1 -right-2 text-[9px] font-bold bg-amber-500 text-black rounded-full w-4 h-4 flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-2.5 text-[9px] font-bold bg-amber-500 text-black rounded-full w-4 h-4 flex items-center justify-center">
                       {streak > 9 ? '9+' : streak}
                     </span>
                   )}
