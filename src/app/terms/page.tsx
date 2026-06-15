@@ -104,7 +104,7 @@ export default function TermsPage() {
             Si tienes preguntas sobre estos términos o sobre el manejo de tus datos, puedes contactarnos en:
           </p>
           <p className="mt-2 font-mono text-violet-400 text-xs">
-            bytenova.dev@gmail.com
+            bytenova38@gmail.com
           </p>
         </Section>
 
